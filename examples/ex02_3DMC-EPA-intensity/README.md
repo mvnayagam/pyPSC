@@ -1,3 +1,5 @@
+# Ex02 MC Simulation in three dimensional Parameter Space
+\
 This example ***<font color='red'>ex02_3DMC-EPA-intensity</font>***  gives example outputs from three dimensional MC simulation.
 This simulation is done for `EPA` model under ``intensity`` concept. Five different
 atomic coordinates are generated as an example. Each coordinate are processed using
@@ -10,6 +12,8 @@ The given results files, in python `hdf (version-5)` file format, can be post-pr
 plot routine given in`` utils/plot3DMC_results.py``. The expected output is given in
 ``EPA_I.pdf`` file.
 
+## 1. Plotting MC results
+\
 To plot the results, open your favorite python editor, for example jupyter notebook,
 and run the following code
 
@@ -33,7 +37,7 @@ of ROs in 3D PS. Also the 'utils/plot3DMC_results.py' routine can handle these r
 
 NOTE: the routine 'utils/plot3DMC_results.py' is meant for only 3D MC simulation.
 
-1.  Time plot
+## 2. Time plot
 
 you can visualize time taken for the process using plottime_nD module from plottime as
 
@@ -50,6 +54,6 @@ the module ``plottime_nD`` need ``fpath`` to search for the results (in h5 forma
 
 For the ex02 the time analysis is save in ``timeinfo.pdf`` file. The analysis is done with ``interval=2``.
 
----
+## 3. How to run
 \
-See the provided  ``ex02.ipjnb`` jupyter notebook
+See the provided  ``ex02.ipjnb`` jupyter notebook. Execute all cells
