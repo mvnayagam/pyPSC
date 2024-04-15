@@ -36,7 +36,7 @@ def getsigncom(r):
             scom.append(u)
     return np.array(scom)
 
-def linrep_DS(h, f, pnt, meshgrid, imin=0, imax=0.5):
+def linrep_DS(h, f, pnt, meshgrid, IorG='intensity', signofIorG=1, imin=0, imax=0.5):
     
     plist   = []
     signcom = getsigncom(len(f))
@@ -50,15 +50,25 @@ def linrep_DS(h, f, pnt, meshgrid, imin=0, imax=0.5):
     
     pfinal = []
     
-    for j in np.array(meshgrid):
+    for meshid in np.array(meshgrid):
         for ii in plist:
-            ji = j+ii
-            if np.all(ji<=imax) and np.all(ji>=imin):
-                pfinal.append(ji)
-    
+            if IorG == 'amplitude':
+                oo=np.cos(2*np.pi*h*meshid)
+                if (np.all( np.sign(oo) == signofIorG )):
+                    ji = meshid+ii
+                    if np.all(ji<=imax) and np.all(ji>=imin):
+                        pfinal.append(ji)
+            elif IorG == 'intensity':
+                oo=np.cos(2*np.pi*h*meshid)
+                if (np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1)):
+                    ji = meshid+ii
+                    if np.all(ji<=imax) and np.all(ji>=imin):
+                        pfinal.append(ji)
+            else:
+                print("please select correct option for IorG. It should be either intensity of amplitude")
     return pfinal
 
-def linrep_SS(h, f, pnt, meshgrid, imin=0, imax=0.5):
+def linrep_SS(h, f, pnt, meshgrid, IorG='intensity', signofIorG=1, imin=0, imax=0.5):
         
     plist   = []
     signcom = getsigncom(len(f))
@@ -71,13 +81,30 @@ def linrep_SS(h, f, pnt, meshgrid, imin=0, imax=0.5):
         #plist.append(poutter)
     
     pfinal = []
-    
-    for j in np.array(meshgrid):
-        
+
+    for meshid in np.array(meshgrid):
         for ii in plist:
-            ji = j+ii
-            if np.all(ji<=imax) and np.all(ji>=imin):
-                pfinal.append(ji)
+            if IorG == 'amplitude':
+                oo=np.cos(2*np.pi*h*meshid)
+                if (np.all( np.sign(oo) == signofIorG )):
+                    ji = meshid+ii
+                    if np.all(ji<=imax) and np.all(ji>=imin):
+                        pfinal.append(ji)
+            elif IorG == 'intensity':
+                oo=np.cos(2*np.pi*h*meshid)
+                if (np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1)):
+                    ji = meshid+ii
+                    if np.all(ji<=imax) and np.all(ji>=imin):
+                        pfinal.append(ji)
+            else:
+                print("please select correct option for IorG. It should be either intensity of amplitude")
+                    
+    # for j in np.array(meshgrid):
+        
+    #     for ii in plist:
+    #         ji = j+ii
+    #         if np.all(ji<=imax) and np.all(ji>=imin):
+    #             pfinal.append(ji)
     
     return pfinal
 

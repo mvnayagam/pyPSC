@@ -62,7 +62,7 @@ def checklinear(l, xcoor, f, normal, distance, j=2, n=100, s=1, testiso=True):
     lspace  = np.linspace(0, 1/(2*l), n)
     kj = [lspace]*(len(f)-1)
     kz = np.meshgrid(*kj)
-    gz = np.zeros_like(kz[0])
+    #gz = np.zeros_like(kz[0])
     
     gi = np.abs(g(l, xcoor, f))
     
@@ -135,29 +135,28 @@ def checklinearplot(l, xexp, f, normal, distance, j=2,n=100, s=1, testiso=True, 
         v=plot_polytope(o[0], ax, alpha=0.15, color ='C0')
 
 
-# def check_isoinpolytope(l, xcoor, f, normal, distance, j=2, n=100, s=1):
+def checkisosurf(l, I, f, normal, distance, n=100, s=1):
     
-#     lspace = np.linspace(0, 1/(2*l), n)
-#     gx,gy  = np.meshgrid(lspace, lspace)
-#     gi   = np.abs(g(l, xcoor, f))
-#     gz  = np.zeros_like(gx)
-#     gzp = hsurf_g(l, [gx, gy, gz], f, gi, j, s=s)
-#     scom=np.array([[1,1,1]]) ; dlis=np.array([[0,0,0]])
-#     o = get_mitd( l, normal, distance, scom, dlis, f, imax=lspace.max())
-        
-#     for uj in range(n):
-#         for vi in range(n):
-#             if ~np.isnan(gzp[uj][vi]) & (gzp[uj][vi] <= (1/(2*l))):
-#                 if [gx[uj][vi],gy[uj][vi],gzp[uj][vi]] in o[0]:
-                    
-#                     continue
-#                 else:
-#                     print("\x1b[1;30m--> Checking the quality of linearization process ",end=" ")
-#                     print("\n--> Found isosurface outside for the point on the location [", uj, vi,"]")
-#                     print("--> The point is : [ ", gx[uj][vi],gy[uj][vi],gzp[uj][vi]," ] is outside the polytope \n")
-#                     print("\x1b[1;31m--> Check the linearization step <-- \x1b[0m")
-#                     print("\x1b[1;32m--> I am quitting hier, BYE <-- \x1b[0m")
-#                     sys.exit()
-#     print("\x1b[1;32m--> Polytope contains complete isosurface. successful Linearization :) \n\x1b[0m")
+    j = len(f)-1
+    lspace  = np.linspace(0, 1/(2*l), n)
+    kj = [lspace]*(len(f)-1)
+    kz = np.meshgrid(*kj)
+    #gz = np.zeros_like(kz[0])
     
-#     return
+    gzp = hsurf_F2(I, l, [*kz], f, j, s=1, s2=1)
+    o = getpoly_mitd(l, normal, distance, scom=np.array([[1]*len(f)]), dlist=np.array([[0]*len(f)]), imax=lspace.max())
+    
+    kz.extend([np.array(gzp)])
+    tz = np.vstack(np.dstack([*kz]))
+    x=tz[~np.isnan(tz).any(axis=1)]
+    
+    check=[i in o for i in x]
+    #check=[ ti in o    for ti in tz   if ~np.all(np.isnan(ti)) ]
+    
+    if ~np.all(check):
+            index = np.where(~np.array(check))[0]
+            dr  = [np.dot(normal,x[inx]) for inx in index]
+            return False, [np.min(dr), np.max(dr)]
+    else:
+        return [True]        
+    return  

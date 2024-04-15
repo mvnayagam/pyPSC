@@ -3,6 +3,8 @@ import polytope as pc
 from itertools import permutations, combinations
 
 
+# ============== Modules for non EPA ==============
+
 def getmesh(l, coordinates, imax):
     
     c = np.linspace(0,imax,int(2*l*imax+1) )
@@ -204,6 +206,116 @@ def getpolytope_EPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=
             print("===> select correct option for IorG")
                         
     return pc.Region(polylist)
+
+
+
+
+# ============== Modules for non EPA ==============
+
+def getpolytope_nEPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=0.5):
+
+    polylist = []
+
+    dlist = getmesh(l, normal, imax=0.5)
+
+    if l==1:
+        dlist = np.delete(dlist, 1, 0)
+    else:
+        pass
+
+    scom  = getsigncom(len(normal))
+    scom  = scom[scom[:,len(normal)-1].argsort()][::-1]
+
+    gpsc  = np.identity(len(normal))
+    Apsc  = np.array(np.vstack([-gpsc, gpsc]))
+    bpsc  = np.array([0]*len(normal) + [0.5]*len(normal))
+    psc   = pc.Polytope(Apsc, bpsc)
+        
+    aa    = np.array(normal)
+    bb    = np.array(distance)
+
+    for d in dlist:
+        d  = np.array(d)
+        oo = np.cos(2*np.pi*l*d)
+        if IorG == 'amplitude':
+            if (np.all(np.sign(oo) == amplitudesign)):
+                for i in scom:
+                    
+                    A = []
+                    A.append(-i*aa)
+                    A.append( i*aa)
+                    
+                    if i[len(normal)-1]>0:
+                        b=np.array(np.array([-i[len(normal)-1], i[len(normal)-1]])*(bb + np.sum([i[kk]*aa[kk]*d[kk] for kk in range(len(d))])))
+                    
+                    else:
+                        b=np.array(np.array([i[len(normal)-1], -i[len(normal)-1]])*(bb + np.sum([i[kk]*aa[kk]*d[kk] for kk in range(len(d))])))
+                    
+                    # ---> inner
+                    iden = np.identity(len(normal))
+                    for k in range(len(normal)):
+                        A=np.vstack([A,-1*iden[k]])
+                    
+                    de = d + (i-1)*(1/(4*l))
+                    b=np.append(b, -de)
+                    
+                    # ---> outter
+                    for k in range(len(normal)):
+                        A=np.vstack([A,iden[k]])
+                        
+                    de = d + 1*(i+1)*(1/(4*l))
+                    b=np.append(b, de)
+                    
+                    w=pc.Polytope(np.array(A),np.array(b))
+                    
+                    if w.chebXc is not None:
+                        if (w <= psc):
+                            polylist.append(w)
+                    
+        elif IorG == 'intensity':
+            
+            if( np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1) ):
+                for i in scom:
+                    
+                    A = []
+                    A.append(-i*aa)
+                    A.append( i*aa)
+                    
+                    if i[len(normal)-1]>0:
+                        b=np.array(np.array([-i[len(normal)-1], i[len(normal)-1]])*(bb + np.sum([i[kk]*aa[kk]*d[kk] for kk in range(len(d))])))
+                    
+                    else:
+                        b=np.array(np.array([i[len(normal)-1], -i[len(normal)-1]])*(bb + np.sum([i[kk]*aa[kk]*d[kk] for kk in range(len(d))])))
+                    
+                    # ---> inner
+                    iden = np.identity(len(normal))
+                    for k in range(len(normal)):
+                        A=np.vstack([A,-1*iden[k]])
+                    
+                    de = d + (i-1)*(1/(4*l))
+                    b=np.append(b, -de)
+                    
+                    # ---> outter
+                    for k in range(len(normal)):
+                        A=np.vstack([A,iden[k]])
+                        
+                    de = d + 1*(i+1)*(1/(4*l))
+                    b=np.append(b, de)
+                    
+                    w=pc.Polytope(np.array(A),np.array(b))
+                    #print(f"w.chebXc : {w.chebXc}")
+                    if w.chebXc is not None:
+                        if (w <= psc):
+                            polylist.append(w)
+        else:
+            print("===> select correct option for IorG")
+                        
+    return pc.Region(polylist)
+
+
+
+
+
 
 
 # ===> I do not know why i wrote this module. but thinking that if coordinates of linearization point

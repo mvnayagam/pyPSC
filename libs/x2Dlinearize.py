@@ -1,5 +1,4 @@
 import numpy as np
-import intvalpy as ip
 
 
 # -------------------- EPA linearization
@@ -13,7 +12,7 @@ def findp3x(x, m, g, h):
 def findp3y(x,h,g):
     return 1/(2*np.pi*h)*np.arccos(g-np.cos(2*np.pi*h*x))
 
-def  double_segment_EPA(gi, l, xexp, f, error=0):
+def double_segment_EPA(gi, l, f, error=0):
     
     #### Jonas Area 
     k    = 2*np.pi*l ;  gi   = np.abs(gi)
@@ -31,7 +30,7 @@ def  double_segment_EPA(gi, l, xexp, f, error=0):
     #### Finding point p3, p4 and p5
     
     j = 1
-    p5x, p5y = fn_solveforx_v2(l, gi, f, m1, j, xexp)
+    p5x, p5y = fn_solveforx_v2(l, gi, f, m1, j, error)
     
     n2   = find_interception(p5x,p5y,m1)
     
@@ -46,7 +45,7 @@ def  double_segment_EPA(gi, l, xexp, f, error=0):
     
     return pnt
 
-def single_segment_EPA(gi, l, xexp, f, error=0):
+def single_segment_EPA(gi, l, f, error=0):
     #### Jonas Area 
     k    = 2*np.pi*l
     gi   = np.abs(gi)
@@ -82,7 +81,7 @@ def single_segment_EPA(gi, l, xexp, f, error=0):
 
 # -------------------- nEPA linearization
 
-def single_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
+def single_segment_nEPA(gi, l, f, j=1, error=0):
     pnt = []
     
     k   = 2*np.pi*l
@@ -108,7 +107,7 @@ def single_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
     m1   = (p2y-p1y)/(p2x-p1x)
     n1   = find_interception(p2x,p2y,m1)
     
-    p4   = fn_solveforx_v2(l, gi, f, m1, j, xcoor)
+    p4   = fn_solveforx_v2(l, gi, f, m1, j, error)
             
     if ~np.all(np.isnan(p4)):
         
@@ -183,7 +182,7 @@ def single_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
         
     return np.array(pnt)
 
-def double_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
+def double_segment_nEPA(gi, l, f, j=1, error=0):
     pnt = []
     k   = 2*np.pi*l
     gi   = np.abs(gi) 
@@ -203,7 +202,7 @@ def double_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
     m1  = (p2y-p1y)/(p2x-p1x)
     n1  = find_interception(p2x,p2y,m1)
     
-    p5   = fn_solveforx_v2(l, gi, f, m1, j, xcoor)
+    p5   = fn_solveforx_v2(l, gi, f, m1, j, error)
     
     if ~np.all(np.isnan(p5)):
         
@@ -277,7 +276,7 @@ def double_segment_nEPA(gi, l, f, xcoor, j=1, error=0):
         
     m3   = (-p6y+p1y)/(-p6x+p1x)
     
-    p7 = fn_solveforx_v2(l, gi, f, m3, j, xcoor)
+    p7 = fn_solveforx_v2(l, gi, f, m3, j, error)
     
     if ~np.all(np.isnan(p7)):
         p7x = p7[0]
@@ -355,11 +354,11 @@ def findpy(x,h,gi,f):
 def findpx(y,h,gi,f):
     return (1/(2*np.pi*h))*np.arccos(gi/f[0] - (f[1]/f[0])*np.cos(2*np.pi*h*y))
 
-def fn_solveforx_v2(l, gi, f, m, j, x):
+def fn_solveforx_v2(l, gi, f, m, j, error):
     
     k = 2 * np.pi * l
     
-    i = list(range(j)) + list(range(j+1,len(x)))
+    i = list(range(j)) + list(range(j+1,len(f)))
     
     a = (1-m*m)/(f[j]*f[j])
     b = 2 * m*m * gi /(f[j]*f[j])
