@@ -1,63 +1,62 @@
 import numpy as np
 import polytope as pc
 from psc.g_space import g, F, hsurf_g, hsurf_F, hsurf_F2
-from psc.x3Dchecklinearization import getpoly_mitd
+from psc.x3Dchecklinearization import getpoly_mitd, checklinear
+
 
 from scipy.optimize import minimize, minimize_scalar, root, basinhopping
 
 # ============== Modules for EPA ==============
 
-def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
+# def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
     
-    k = 2*np.pi*l  ; tot_coor = []
+#     k = 2*np.pi*l  ; tot_coor = []
     
-    for i in range(len(f)):        
-        tem_coor    = np.zeros(len(f))
-        tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
+#     for i in range(len(f)):        
+#         tem_coor    = np.zeros(len(f))
+#         tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
         
-        tot_coor.append(tem_coor)        
+#         tot_coor.append(tem_coor)        
     
-    if np.all(~np.isnan(np.array(tot_coor))):
-        return np.array(tot_coor)
-    else:
+#     if np.all(~np.isnan(np.array(tot_coor))):
+#         return np.array(tot_coor)
+#     else:
         
-        inx = np.argwhere(np.isnan(tot_coor).any(axis=1)).flatten()
+#         inx = np.argwhere(np.isnan(tot_coor).any(axis=1)).flatten()
         
-        for iw in inx:
-            tem_coor    = np.zeros(len(f))
-            tem_coor[iw] = xinit/l
+#         for iw in inx:
+#             tem_coor    = np.zeros(len(f))
+#             tem_coor[iw] = xinit/l
             
-            mlist       = list([ii for ii in range(len(f)) if ii != iw])
+#             mlist       = list([ii for ii in range(len(f)) if ii != iw])
             
-            temp_coor = (1/k)*np.arccos( (gi-f[iw]*np.cos(k*tem_coor[iw])) / 
-                                         (np.sum([f[ii]*np.cos(k*tem_coor[ii]) for ii in mlist])))
+#             temp_coor = (1/k)*np.arccos( (gi-f[iw]*np.cos(k*tem_coor[iw])) / 
+#                                          (np.sum([f[ii]*np.cos(k*tem_coor[ii]) for ii in mlist])))
             
-            tem_coor[iw+1:] = temp_coor
-            tem_coor[:iw]   = temp_coor
+#             tem_coor[iw+1:] = temp_coor
+#             tem_coor[:iw]   = temp_coor
             
-            tot_coor[iw]=tem_coor
+#             tot_coor[iw]=tem_coor
             
-    return np.array(tot_coor)
+#     return np.array(tot_coor)
 
 def get_pnts_new(l, f, gi, imax=0.5):
     tot_coor=[]
     for i in range(len(f)):
-        tem_coor    = np.zeros(len(f))
-        #tem_coor[i] = x[i]
+        tem_coor    = np.zeros(len(f)) #tem_coor[i] = x[i]
         tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
         
-        
-        if (~np.isnan(tem_coor[i])):
-            tem_coor[i] = tem_coor[i]
-        else:
-            tem_coor[i] = imax/l
-            tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
-            
+        # if (~np.isnan(tem_coor[i])):
+        #     tem_coor[i] = tem_coor[i]
+        # else:
+        #     tem_coor[i] = imax/l
+        #     #tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
         tot_coor.append(tem_coor)
     
     return tot_coor
 
-def linearizenD_EPA(l:int, f: list, gi: int) ->list:
+
+def linearizenD_EPA_old_deltelater (l:int, f: list, gi: int) ->list:
     
     k = 2*np.pi*l
     #======= 1. finding first three points
@@ -113,6 +112,183 @@ def linearizenD_EPA(l:int, f: list, gi: int) ->list:
     return normal, d_all
 
 
+# ============== Modules for EPA ==============
+
+def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
+    
+    k = 2*np.pi*l  ; tot_coor = []
+    
+    # point on axis and face diagonal
+    for i in range(len(f)):        
+        tem_coor    = np.zeros(len(f))
+        tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
+        
+        tot_coor.append(tem_coor)        
+    
+    if np.all(~np.isnan(np.array(tot_coor))):
+        pass
+    else:
+        
+        inx = np.argwhere(np.isnan(tot_coor).any(axis=1)).flatten()
+        
+        for iw in inx:
+            tem_coor    = np.zeros(len(f))
+            tem_coor[iw] = xinit/l
+            
+            mlist = np.delete(np.arange(len(f)), iw )
+            
+            temp_coor = (1/k)*np.arccos( (gi-f[iw]*np.cos(k*tem_coor[iw])) / 
+                                         (np.sum([f[ii]*np.cos(k*tem_coor[ii]) for ii in mlist]))  )
+            
+            tem_coor[iw+1:] = temp_coor
+            tem_coor[:iw]   = temp_coor
+            
+            tot_coor[iw]=tem_coor
+    
+    # point along body diagonal
+    xp=(1/k)*np.arccos(gi/np.sum(f)) #; print(f'xp : {xp}')
+    tot_coor = np.vstack([np.array(tot_coor), [xp]*len(f)])
+    
+    return np.array(tot_coor)
+
+def pntonplane(l, f, gi):
+    pr = 1 / (2 * l)
+    k = 2 * np.pi * l
+    pp = []
+    
+    for jinx in range(0, len(f)):
+        inx = np.delete(np.arange(len(f)), jinx)  #; print("inx ", inx)
+        denominator = np.sum([f[ji] for ji in inx])
+            
+        for zj in [0,]:
+            temp = np.array([zj] * len(f))
+            dr = (1/k) * np.arccos((gi - f[jinx] * np.cos(k * zj)) / denominator)
+            temp = np.where(np.isin(np.arange(len(temp)), inx), dr, temp)
+            
+            pp.append(temp) if not np.any(np.isnan(temp)) else None
+    
+    return np.array(pp)
+
+def findnormal(ps: list) -> list:
+    centroid = np.mean(ps, axis=0)
+    u, s, v  = np.linalg.svd(ps-centroid)
+    #nor = np.abs(v[-1]) if np.all((ps-centroid)[0] >0)  else -1*v[-1] # if ((ps-centroid)[0][0]) >0 else -1*v[-1]
+    if np.all(v[-1]>=0):
+        nor=v[-1]
+    else:
+        nor = np.abs(v[-1]) if np.all((ps-centroid)[0] >0)  else -1*v[-1] # if ((ps-centroid)[0][0]) >0 else -1*v[-1]
+    #nor = v[-1] if np.dot((ps[0] - centroid), v[-1]) > 0 else -1 * v[-1] 
+
+    ds = np.min([np.abs(np.dot(i, nor)) for i in ps])  #  we can use np.sum(ps * nor, axis=1)
+    
+    #print(f"u : \n{u} \n v\n{v}\ns{s}")
+    #print(f"\n ps-centroid :\n {ps-centroid} and nor is {nor}")
+    #print(f"ds's {[np.abs(np.dot(i, nor)) for i in ps]}")
+    
+    return nor
+
+def pointonnDface(l, f, gi):
+    import itertools
+    
+    kp=[]
+    f=np.array(f)
+    
+    for i in range(0, len(f)-1):
+        k  = 2*np.pi*l
+        z  = np.zeros(len(f))
+        
+        up   = np.delete(np.arange(len(f)), np.arange(i,len(f)))
+        down = np.arange(i,len(f))
+        
+        gg = (1/k)*np.arccos( ( gi-np.sum([f[j]*np.cos(k*z[j]) for j in up ])) / np.sum(f[down]) )
+        
+        gg = gg if not np.isnan(gg) else 1/(2*l)
+        z[down]=gg
+        zpermutation = list(itertools.permutations(z))
+        
+        z_array = np.array(list(set(zpermutation)))
+        kp = z_array if len(kp) == 0 else np.vstack([kp, z_array])
+        
+    return kp
+
+def linearizenD_EPA(l:int, f: list, gi: int) ->list:
+    
+    k = 2*np.pi*l
+    #======= 1. finding first three points
+    pnt = get_pnts_new(l, f, gi)
+    
+    #======= 2. finding fourth point : the point on the surface :: At particular point x=y=z or x1*=x2*=x3*. so
+    xp  = [ (1/k)*np.arccos(gi/np.sum(f)) ]*len(f)
+    
+    #print(f'pnt \n {np.array(pnt)}')
+    
+    if np.all(~np.isnan(pnt)):
+        print(f'isotype {1}')
+        
+        centroid = np.mean(pnt, axis=0)
+        u, s, v  = np.linalg.svd(pnt-centroid)
+        normal = np.abs(v[-1])              #n = v[-1] if np.all((pnt-centroid)[0]>=0) else -1*v[-1]
+        
+        #print(f'centroid {centroid}')
+        
+        d_int = np.dot(normal, centroid)    #np.double(np.sum(np.multiply(normal,centroid)))
+        d_out = np.dot(normal, xp)          #np.double(np.sum(np.multiply(normal,p4)))
+        
+        aps = [d_out/i for i in normal]
+                        
+        for iv in range(len(f)):
+            vv = np.zeros(len(f))
+            vv [iv] = aps[iv]
+            #print(f'vv : {vv}')
+            pnt = np.vstack([pnt, vv])
+        
+        d_all  = [d_int,d_out]
+        pntx   = pnt
+    else:
+        #print(f'\n-------------------- isotype {2}')
+                
+        pnt=[]
+        pFP = pointonnDface(l, f, gi)
+        
+        pin = get_pnts_new4(l, f, gi, xinit=0)
+        pnt = np.vstack([pin])
+            
+        pon = get_pnts_new4(l, f, gi, xinit=0.5)
+        pnt = np.vstack([pnt, pon])
+       
+        centroidi   = np.mean(pin, axis=0)
+        ui, si, vi  = np.linalg.svd(pin-centroidi)
+        #d_int = np.abs(np.dot(vi[-1],centroidi))    #np.abs(np.sum(np.multiply(-1*vi[-1],centroidi)))
+                
+        centroido   = np.mean(pon, axis=0)
+        uo, so, vo  = np.linalg.svd(pon-centroido)
+
+        normal = np.abs(vo[-1])
+        
+        #d_out1      = np.dot(normal, centroido)       #np.abs(np.sum(np.multiply(vo[-1],centroido)))
+        #d_out2      = np.abs(np.dot(normal, xp))
+        
+        pntx = np.vstack([pnt, pFP])
+        #print(f'pFP {pFP}')
+        #pFPnormal=findnormal(pFP)
+        #print(f"from FP: {pFPnormal, findnormal(pntx)} dist: {np.array([np.dot(ii, pFPnormal) for ii in pFP])}")
+                
+        dall = np.dot(pntx, normal)  #[d_int, d_out1] if d_out1 > d_out2 else  [d_int, d_out2]
+        d_all = [np.min(dall), np.max(dall) ]
+        
+        checkstatus, checked_d = checklinear(l, f, gi, normal, d_all, j=len(f)-1)
+        #print(f'dis old  {d_all} new {checked_d}')
+        if checkstatus == True:
+            pass
+        else:
+            d_all = checked_d
+            #print(f'----------- dis new {checked_d}')
+            checkstatus, checked_d = checklinear(l, f, gi, normal, d_all, j=len(f)-1)
+            #print(f'------------ dis new2 {checked_d}')
+            
+    #print(f'from linearizenD_EPA :: pnt \n {np.array(pnt)} \n\ndist: {np.dot(pnt, normal)}')
+        
+    return normal, d_all, pntx
 
 
 # ============== Modules for non EPA ==============

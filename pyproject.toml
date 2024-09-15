@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyPSC"
+version = "0.1.0"
+authors = [
+    {name = "Muthu Vallinayagam", email = "muthu.vallinayagam@htw-dresden.de"},
+    {name = "Melanie Netwich"},
+    {name = "Matthias Zschornak"}
+]
+description = "Predict crystal structures from available hkl information"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["x-ray", "miller index", "python", "structure prediction", "inequalities", "polytope", "parameter space", "one-dimensionally projected structures"]
+license = "MIT"
+dependencies = [
+    "numpy >= 1.24.0",
+    "h5py >= 3.11.0",
+    "cvxopt >= 1.3.2",
+    "polytope >= 0.2.5",
+    "scipy >= 1.14.1",
+    "shapely >= 2.0.6"
+]
+
+[project.urls]
+Documentation = "https://github.com/mvnayagam/pyPSC.git"
+Repository = "https://github.com/mvnayagam/pyPSC.git"
+Issues = "https://github.com/mvnayagam/pyPSC/issues"
+
+[tool.setuptools.packages.find]
+include = ["*"]
+
+[tool.pylint.MASTER]
+ignore-paths = ["^docs/.*$", "setup.py"]
+
+[tool.black]
+line-length = 88
+force-exclude = '''
+
+(
+  /(
+      \.git          # root of the project
+    | docs
+  )/
+  | setup.py
+)
+'''
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+follow_imports = "silent"
+disable_error_code = ["method-assign"]
+strict = true

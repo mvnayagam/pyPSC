@@ -2,6 +2,46 @@ import numpy as np
 from itertools import permutations, combinations
 
 
+def repeat2D(p, d, f, imin, imax):
+    
+    pts =[]
+    inx =np.argwhere(d != 0)
+    nz  =np.count_nonzero(d)
+    
+    if nz == 0:
+        e1=np.copy(p)
+        pts.append(e1)
+        
+    if nz != 0:
+        r,c = np.shape(p)
+        
+        if (nz != len(d)):
+            
+            if (np.all((d[inx[:,0]]+p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]+p[:,inx[:,0]])<=imax)):
+                              
+                if (nz == 1):
+                    e2=np.copy(p)
+                    e2[:,inx[:,0]]=e2[:,inx[:,0]]+d[inx[:,0]]
+                    pts.append(e2)
+            
+        if (np.all((d[inx[:,0]]-p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]-p[:,inx[:,0]])<=imax)):
+            
+            e4=np.copy(p)
+            e4[:,inx[:,0]]=d[inx[:,0]]-p[:,inx[:,0]]
+            pts.append(e4)
+            
+            if (nz >1):
+                for j in f:
+                    e4a=np.copy(p)
+                    e4a=e4a*j
+                    
+                    e4a[:,inx[:,0]]=d[inx[:,0]]-e4a[:,inx[:,0]]
+                    
+                    if (np.all(e4a>=imin) and np.all(e4a<=imax)):
+                        pts.append(e4a)
+        
+    return pts
+
 def mesh(l, coordinates, imax):
     
     c = np.linspace(0,imax,int(2*l*imax+1) )

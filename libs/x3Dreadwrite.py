@@ -5,6 +5,9 @@ import polytope as pc
 
 
 def wrtdata(fname, rc, volume, err, final, extremepnts,volAsym, Lsol):
+    '''
+    
+    '''
     
     with h5py.File(fname, 'a') as f:
     ### Writing volume information in file 
@@ -68,29 +71,35 @@ def wrtdata(fname, rc, volume, err, final, extremepnts,volAsym, Lsol):
 
 def wrtcoor(fname, pairs):
     
-    ### Writing polygenerated coordinats to file 
-    
-    import h5py
-    
+    ### Writing polygenerated coordinats to file
+        
     with h5py.File(fname, 'a') as f:
-        for i, k in enumerate(pairs):
-            ksort = np.sort(k)[::-1]
+        for i, Pair in enumerate(pairs):
+            Pair_sort = np.sort(Pair)[::-1]
             
-            if 'generatedcoordinate' in f:
-                co = str('/generatedcoordinate/')+str(i)
-                f.create_dataset(co, data=ksort,  dtype='float64')
-            else:
-                gco = f.create_group('generatedcoordinate')
-                co  = str('/generatedcoordinate/')+str(i)
-                f.create_dataset(co, data=ksort,  dtype='float64')
+            # if 'generatedcoordinate' in f:
+            #     co = str('/generatedcoordinate/')+str(i)
+            #     f.create_dataset(co, data=ksort,  dtype='float64')
+            # else:
+            #     gco = f.create_group('generatedcoordinate')
+            #     co  = str('/generatedcoordinate/')+str(i)
+            #     f.create_dataset(co, data=ksort,  dtype='float64')
             
-            if 'unsortedcoordinate' in f:
-                co = str('/unsortedcoordinate/')+str(i)
-                f.create_dataset(co, data=k,  dtype='float64')
+            if 'coordinate' in f:
+                co = str('/coordinate/')+str(i)
+                f.create_dataset(co, data=Pair,  dtype='float64')
             else:
-                gco = f.create_group('unsortedcoordinate')
-                co  = str('/unsortedcoordinate/')+str(i)
-                f.create_dataset(co, data=k,  dtype='float64')
+                gco = f.create_group('coordinate')
+                co  = str('/coordinate/')+str(i)
+                f.create_dataset(co, data=Pair,  dtype='float64')
+            
+            if 'coordinate_sorted' in f:
+                co = str('/coordinate_sorted/')+str(i)
+                f.create_dataset(co, data=Pair_sort, dtype='float64')
+            else:
+                gco = f.create_group('coordinate_sorted')
+                co  = str('/coordinate_sorted/')+str(i)
+                f.create_dataset(co, data=Pair_sort, dtype='float64')
     return
 
 def wrtvolume(fname, rc, volume, dx, dy, final):
@@ -118,32 +127,33 @@ def wrtallsolution(fname, rc, solutionall):
         for cou, ip in enumerate(sa):
             if type(ip) is pc.Polytope:
                 
-                allpa=str('/allsolution/Pair')+ str(rc)+ str('/a')+ str(count)
-                allpb=str('/allsolution/Pair')+ str(rc)+ str('/b')+ str(count)
+                allpa=str('/allsolution_polytope/Pair')+ str(rc)+ str('/a')+ str(count)
+                allpb=str('/allsolution_polytope/Pair')+ str(rc)+ str('/b')+ str(count)
                 
                 file.create_dataset(allpa, data=ip.A, dtype='float64')
                 file.create_dataset(allpb, data=ip.b, dtype='float64')
                 count += 1
                 
             elif type(ip) is pc.Region:
-                for iq in ip:
+                for iqinx, iq in enumerate(ip):
                     count += 1
-                    allpa=str('/allsolution/')+ str('/Pair/')+ str(rc)+ str('/a')+ str(rc)+ str(count)
-                    allpb=str('/allsolution/')+ str('/Pair/')+ str(rc)+ str('/b')+ str(rc)+ str(count)
+                    #cou = iqinx + cou
+                    allpa=str('/allsolution_polytope/')+ str('/Pair/')+ str(rc)+ str('/a')+ str(rc)+ str(count)
+                    allpb=str('/allsolution_polytope/')+ str('/Pair/')+ str(rc)+ str('/b')+ str(rc)+ str(count)
                     file.create_dataset(allpa, data=iq.A, dtype='float64')
                     file.create_dataset(allpb, data=iq.b, dtype='float64')
         
     with h5py.File(fname, 'a') as file:
         
         #---> Writing extreme points of polytope information in file 
-        if 'allsolution' in file:
-            grp=file['/allsolution/']
+        if 'allsolution_polytope' in file:
+            grp=file['/allsolution_polytope/']
             sgp=str('Pair')+ str(rc)
             sg = grp.create_group(sgp)
             wrtfile(rc, file, solutionall)
             
         else:
-            gpolytope = file.create_group('allsolution')
+            gpolytope = file.create_group('allsolution_polytope')
             spg=str('Pair')+ str(rc)
             sg = gpolytope.create_group(spg)
             
@@ -153,12 +163,12 @@ def wrtallsolution(fname, rc, solutionall):
 
 def wrttime_mc(rc, fname, timeinfo):
     with h5py.File(fname, 'a') as f:
-        if 'timeexe' in f:
-            dtime = str('/timeexe/')+str('tfor') +str(rc)
+        if 'time_total' in f:
+            dtime = str('/time_total/')+str('tforPair') +str(rc)
             f.create_dataset(dtime,  data=timeinfo,  dtype='float64')
         else:
-            gtime = f.create_group('timeexe')
-            dtime = str('/timeexe/')+str('tfor') +str(rc)
+            gtime = f.create_group('time_total')
+            dtime = str('/time_total/')+str('tforPair') +str(rc)
             f.create_dataset(dtime,  data=timeinfo,  dtype='float64')
         
     return
