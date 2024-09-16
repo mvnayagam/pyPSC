@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyPSC"
+name = "pypsc"
 version = "0.1.0"
 authors = [
     {name = "Muthu Vallinayagam", email = "muthu.vallinayagam@htw-dresden.de"},
