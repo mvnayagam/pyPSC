@@ -1,7 +1,3 @@
-Here's a well-structured `README.md` file based on the information you provided:
-
----
-
 # pyPSC: Parameter Space Concept for Determining 1D-Projected Crystal Structures
 
 **pyPSC** is a Python package that implements the Parameter Space Concept (PSC) for determining 1-dimensionally projected structures of independent scatterers from diffraction data. This method avoids traditional Fourier inversion and focuses on exploring all possible structural parameter combinations consistent with available diffraction data in a parameter space of dimension `m`.
