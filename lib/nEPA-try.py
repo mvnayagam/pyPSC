@@ -1,10 +1,43 @@
+import sys
 import numpy as np
-from scipy import root
-from .g_space import g, F, hsurf_g, hsurf_F, hsurf_F2
+from .g_space import g, hsurf_F2, hsurf_g
+
+from scipy.optimize import root
+
+
+def checklinear(l, xcoor, f, normal, distance, j=2, n=200, s=1, testiso=True):
     
+    lspace  = np.linspace(0, 1/(2*l), n)
+    kj = [lspace]*(len(f)-1)
+    kz = np.meshgrid(*kj)
+    gz = np.zeros_like(kz[0])
+    
+    gi = g(l, xcoor, f)**2
+    
+    gzp= hsurf_F2(gi, l, [*kz], f, j=2, s=1, s2=1)   ## check hsurf_F2 argment position
+    
+    o  = getpoly_mitd(l, normal, distance, scom=np.array([[1]*len(f)]), dlist=np.array([[0]*len(f)]), imax=lspace.max())
+    
+    if testiso:
+        kz.extend([np.array(gzp)])
+        tz = np.vstack(np.dstack([*kz]))
+        
+        for ti in tz:
+            if np.all(~np.isnan(ti)):
+                if ti in o[0]:
+                    continue
+                else:
+                    print("\x1b[1;31m--> Checking the quality of linearization process ",end=" ")
+                    print("\n--> Found isosurface outside for the point on the location ",ti)
+                    print("--> The point is: ", ti,"isoutside the polytope \n")
+                    print("\x1b[1;31m--> Check the linearization step <-- \x1b[0m")
+                    print("\x1b[1;32m--> I am quitting hier, BYE <-- \x1b[0m")
+                    sys.exit()
+        print("\x1b[1;32m--> Polytope contains complete isosurface. Successful Linearization for \x1b[1;31mRO = %g\x1b[0m"%(l))
+    
+    return
+
 def extremetangent(h, gi, f, normal, percentage=1):
-    
-    from scipy.optimize import minimize, minimize_scalar, root, basinhopping
     
     def func_vec(x0, h, gi, f, normal):
         k  = 2*np.pi*h
@@ -28,33 +61,6 @@ def extremetangent(h, gi, f, normal, percentage=1):
     midpnt = [ k1*np.arcsin((res[i]*normal[i])/(k*f[i])) for i in range(len(f))]
     
     return [res, midpnt]
-    
-def cheiso(l, xexp, f, normal, distance, j=2, n=500, s=1):
-    
-    lspace = np.linspace(0, 1/(2*l), n)
-    gx, gy = np.meshgrid(lspace, lspace)
-    
-    gz     = np.zeros_like(gx)
-    
-    gii    = F(l, xexp, f)**2        ; gzp = hsurf_F2a(gii, l, [gx, gy, gz], f, j=2, s=1, s2=1)
-    #gii    = np.abs(g(l, xexp, f)) ; gzp = hsurf_g(l, [gx, gy, gz], f, gii, j, s=s)
-    
-    o = get_mitd(l, normal, distance, scom=np.array([[1,1,1]]), dlis=np.array([[0,0,0]]), imax=np.max(lspace))
-    
-    points = np.column_stack((gx.ravel(), gy.ravel(), gzp.ravel()))
-    
-    x=points[~np.isnan(points).any(axis=1)]
-    check=[i in o for i in x]
-        
-    if ~np.all(check):
-        inx = np.where(~np.array(check))[0]
-        dr  = [np.dot(normal,x[i]) for i in inx]
-        
-        return False, [np.min(dr), np.max(dr)]
-    
-    else:
-        return [True]
-    return
 
 def remaining(l, gi, f, n_select, di):
     
@@ -63,7 +69,7 @@ def remaining(l, gi, f, n_select, di):
     
     distance = [di, do]
     
-    dok=cheiso(l, xexp, f, n_select, distance, j=2, n=500, s=1)
+    dok=checklinear(l, xexp, f, n_select, distance, j=2, n=500, s=1)
     
     if not dok[0]: # dok[1] = [di_n, do_n]
         do = dok[1][1] if ~dok[0] and do <dok[1][1] else do
@@ -111,13 +117,13 @@ def getxyz_opt3(l, f, I, minmax=0):
             t = [0] * len(f)
             t[len(f)-1] = jj
             
-            z = hsurf_F2a(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i, s=1)
+            z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i, s=1)
             
             if not np.isnan(z):
                 t[i] = z
             else:
                 t[i] = 0.5/l
-                z = hsurf_F2a(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i-1, s=1)
+                z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i-1, s=1)
                 if not np.isnan(z):
                     t[i-1] = z
                 else:
@@ -127,10 +133,8 @@ def getxyz_opt3(l, f, I, minmax=0):
     a = np.array(xyz)
     
     if minmax==0:
-        #a[:,0:1] = np.min(a[:,0:1])
         a[:,0] = np.min(a[:,0], axis=0)
     else:
-        #a[:,0:1] = np.max(a[:,0:1])
         a[:,0] = np.unique(a)[-2] if np.unique(a)[-1] == 0.5/l else  np.unique(a)[-1]
         
     return a, np.array(xyz)
@@ -142,15 +146,15 @@ def getxyz(l, f, gi):
         for jj in [0, 1/(2*l)]:
             t = [0]*len(f)
             t[len(f)-1] = jj
-            z = hsurf_g(l, t, f, gi, j=i, s=1)
-            #z = hsurf_F2a(gi, l, t, f, j=i, s=1, s2=1)
+            #z = hsurf_g(l, t, f, gi, j=i, s=1)
+            z = hsurf_F2(gi, l, t, f, j=i, s=1, s2=1)
             
             if ~np.isnan(z):
                 t[i] = z
             else:
                 t[i] = 0.5/l
                 #z = hsurf_g(l, t, f, gi, j=i, s=1)
-                z = hsurf_F2a(gi*gi, l, t, f, j=i, s=1, s2=1)
+                z = hsurf_F2(gi*gi, l, t, f, j=i, s=1, s2=1)
                 
                 if not np.isnan(z):
                     t[i-1] = z
@@ -161,21 +165,19 @@ def getxyz(l, f, gi):
     
     a = np.copy(xyz)
     a = a[a[:, 1].argsort()][::-1]
-    #print("\n a - before :: \n", a)
     a[0][:2] = a[1][:2] if np.all(a[1][:2] <= a[0][:2]) else a[0][:2]
     a[1][:2] = a[0][:2] if np.all(a[1][:2] >= a[0][:2]) else a[1][:2]
     
     a[2][:2] = a[3][:2] if np.all(a[3][:2] <= a[2][:2]) else a[2][:2]
     a[3][:2] = a[2][:2] if np.all(a[3][:2] >= a[2][:2]) else a[3][:2]
     
-    #print("\n a - after :: \n", a)
     return np.array(a), np.array(xyz)    
 
-def get_pnt_nEPA(l, f, I):
+def get_pnts(l, f, I):
     tot_coor=[]
     for i in range(len(f)):
         tem_coor    = np.zeros(len(f))
-        tem_coor[i] = hsurf_F2a(I*I, l, tem_coor, f, j=i, s=1, s2=1) #hsurf_g(l, tem_coor, f, gi, i, s=1)
+        tem_coor[i] = hsurf_F2(I*I, l, tem_coor, f, j=i, s=1, s2=1) #hsurf_g(l, tem_coor, f, gi, i, s=1)
         tot_coor.append(tem_coor)
         
     return tot_coor
@@ -184,7 +186,7 @@ def gt3(l, f, I):
     xyz = []
     
     t = [0] * len(f)
-    z = hsurf_F2a(I*I, l, t, f, j=0, s=1, s2=1)
+    z = hsurf_F2(I*I, l, t, f, j=0, s=1, s2=1)
     
     if not np.isnan(z):
         t[0] = z
@@ -196,7 +198,7 @@ def gt3(l, f, I):
     for i in range(1,len(f)):
         t = [0] * len(f)
         t[i] = 0.5/l
-        z = hsurf_F2a(I*I, l, t, f, j=0, s=1, s2=1)
+        z = hsurf_F2(I*I, l, t, f, j=0, s=1, s2=1)
         
         if not np.isnan(z):
             t[0] = z
@@ -206,23 +208,23 @@ def gt3(l, f, I):
         xyz.append(t)
     
     t = [0.5/l] * len(f)
-    z = hsurf_F2a(I*I, l, t, f, j=0, s=1, s2=1)
+    z = hsurf_F2(I*I, l, t, f, j=0, s=1, s2=1)
     
     if not np.isnan(z):
         t[0] = z
     else:
         t[0] = 0.5/l
-    ###
+    
     xyz.append(t)
     
     a = np.array(xyz) ; a[:,0] = np.unique(a)[-1] if np.unique(a)[-1] == 0.5/l else  np.unique(a)[-1]
     return xyz, a
 
-
-
-def linearnD_nEPA(l, f, gi):   
-    pnt = get_pnt_nEPA(l, f, gi)
+def newfnq(l, f, gi):
+    
+    pnt = get_pnts(l, f, gi)
     count_Nan = np.count_nonzero(np.isnan(pnt))
+    
     
     if   count_Nan == 0:
         f = np.array(f)
@@ -244,8 +246,7 @@ def linearnD_nEPA(l, f, gi):
         n_select    = ni #n_ext
         distance_all = remaining(l, gi, f, n_select, di)
         
-    elif count_Nan > 1:        
-        #pi, pext  = getxyz_opt3(l, f, gi, minmax=1)
+    elif count_Nan > 1:
         pi, pext    = gt3(l, f, gi)
         
         n_ext, dext = plane_eq2n(pext)
@@ -259,5 +260,7 @@ def linearnD_nEPA(l, f, gi):
         print("--> count_Nan ", count_Nan)
         print("--> Wired isosurface check linearization routine ")
         print("--> predicted points are : \n", pnt)
-        
+    
+    #print("n_select, distance_all : ", n_select, distance_all)
+    
     return n_select, distance_all

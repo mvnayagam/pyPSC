@@ -6,18 +6,16 @@ import os
 import numpy as np
 
 from datetime import datetime
-from pathlib import Path
 
-from itertools import permutations, combinations
+from itertools import permutations
 
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 from shapely.geometry import Point, Polygon
 
-from psc.g_space import F, g, hsurf_F2, hsurf_g
-from psc.x2Dlinearize import double_segment_EPA, single_segment_EPA
-from psc.x2Drepetition import mesh, getsigncom
-
+from .g_space import F, g
+from .x2Dlinearize import double_segment_EPA, single_segment_EPA
+from .x3Drepetition import getmesh
 
 def fn_write(fn, data):
     
@@ -86,7 +84,7 @@ def isosurface_newEPA(h, xexp, f, j, fname, SSorDS='DS', IorG='amplitude', imin=
         
         t1=datetime.now()
         
-        meshlist = mesh(l, xexp, imax)
+        meshlist = getmesh(l, xexp, imax)
         
         if IorG == 'amplitude':
             gi    = np.abs(g(l, xexp, f))

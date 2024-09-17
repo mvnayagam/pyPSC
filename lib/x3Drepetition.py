@@ -1,11 +1,13 @@
 import numpy as np
 import polytope as pc
-from itertools import permutations, combinations
+from itertools import permutations
 
 
-# ============== Modules for non EPA ==============
+# -------------------------------------------------------
+# ============== Common Modules ==============
+# -------------------------------------------------------
 
-def getmesh(l, coordinates, imax):
+def getmesh(l: int, coordinates: list, imax:int =0.5) -> list:
     
     c = np.linspace(0,imax,int(2*l*imax+1) )
     
@@ -29,7 +31,7 @@ def getmesh(l, coordinates, imax):
        
     return np.array(plist)
 
-def getsigncom(r):
+def getsigncombination(r:int) -> list:
     scom=[]
 
     for i in range(0, r+1):
@@ -39,13 +41,27 @@ def getsigncom(r):
             scom.append(u)
     return np.array(scom)
 
-def  getpolytope( l, normal, distance, imax=0.5):
+def  getpolytope(l: int, normal: list, distance: list, imax: int =0.5) -> list:
+    """ returns a collection of polytope for given reflection l.
+        The polytope parameters boundary distance and normal are
+        the required inputs. This module is for both EPA and nEPA
+        Also this do not assume I or G. So it will return 2*(l**m)
+        polytope for given l. m is dimension of PS
+    Args:
+        l (int): reflection
+        normal (list): direction of polytope
+        distance (list): boundary distance
+        imax (int, optional): Limit of PS. Defaults to 0.5.
+
+    Returns:
+        _type_: Region of polytope.
+    """    
     
     polylist = []
     
     dlist = getmesh(l, normal, imax=0.5)
     
-    scom  = getsigncom(len(normal))
+    scom  = getsigncombination(len(normal))
     scom  = scom[scom[:,len(normal)-1].argsort()][::-1]
     
     gpsc  = np.identity(len(normal))
@@ -95,6 +111,10 @@ def  getpolytope( l, normal, distance, imax=0.5):
                 
     return pc.Region(polylist)
 
+
+# -------------------------------------------------------
+# ============== Modules for EPA ==============
+# -------------------------------------------------------
 def getpolytope_EPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=0.5):
     
     # temp=[]
@@ -118,7 +138,7 @@ def getpolytope_EPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=
         #dlist=np.array(dinx)
         dlist=dlist1
     
-    scom  = getsigncom(len(normal))
+    scom  = getsigncombination(len(normal))
     scom  = scom[scom[:,len(normal)-1].argsort()][::-1]
     
     gpsc  = np.identity(len(normal))
@@ -208,9 +228,9 @@ def getpolytope_EPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=
     return pc.Region(polylist)
 
 
-
-
+# -------------------------------------------------------
 # ============== Modules for non EPA ==============
+# -------------------------------------------------------
 
 def getpolytope_nEPA( l, normal, distance, amplitudesign, IorG='amplitude', imax=0.5):
 
@@ -223,7 +243,7 @@ def getpolytope_nEPA( l, normal, distance, amplitudesign, IorG='amplitude', imax
     else:
         pass
 
-    scom  = getsigncom(len(normal))
+    scom  = getsigncombination(len(normal))
     scom  = scom[scom[:,len(normal)-1].argsort()][::-1]
 
     gpsc  = np.identity(len(normal))
@@ -313,49 +333,44 @@ def getpolytope_nEPA( l, normal, distance, amplitudesign, IorG='amplitude', imax
     return pc.Region(polylist)
 
 
-
-
-
-
-
 # ===> I do not know why i wrote this module. but thinking that if coordinates of linearization point
-#      is known then this module can be used
-def repeat(p, d, f, imin, imax):
+# #      is known then this module can be used
+# def repeat(p, d, f, imin, imax):
     
-    pts =[]
-    inx =np.argwhere(d != 0)
-    nz  =np.count_nonzero(d)
+#     pts =[]
+#     inx =np.argwhere(d != 0)
+#     nz  =np.count_nonzero(d)
     
-    if nz == 0:
-        e1=np.copy(p)
-        pts.append(e1)
+#     if nz == 0:
+#         e1=np.copy(p)
+#         pts.append(e1)
         
-    if nz != 0:
-        r,c = np.shape(p)
+#     if nz != 0:
+#         r,c = np.shape(p)
         
-        if (nz != len(d)):
+#         if (nz != len(d)):
             
-            if (np.all((d[inx[:,0]]+p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]+p[:,inx[:,0]])<=imax)):
+#             if (np.all((d[inx[:,0]]+p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]+p[:,inx[:,0]])<=imax)):
                               
-                if (nz == 1):
-                    e2=np.copy(p)
-                    e2[:,inx[:,0]]=e2[:,inx[:,0]]+d[inx[:,0]]
-                    pts.append(e2)
+#                 if (nz == 1):
+#                     e2=np.copy(p)
+#                     e2[:,inx[:,0]]=e2[:,inx[:,0]]+d[inx[:,0]]
+#                     pts.append(e2)
             
-        if (np.all((d[inx[:,0]]-p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]-p[:,inx[:,0]])<=imax)):
+#         if (np.all((d[inx[:,0]]-p[:,inx[:,0]])>=imin) and np.all((d[inx[:,0]]-p[:,inx[:,0]])<=imax)):
             
-            e4=np.copy(p)
-            e4[:,inx[:,0]]=d[inx[:,0]]-p[:,inx[:,0]]
-            pts.append(e4)
+#             e4=np.copy(p)
+#             e4[:,inx[:,0]]=d[inx[:,0]]-p[:,inx[:,0]]
+#             pts.append(e4)
             
-            if (nz >1):
-                for j in f:
-                    e4a=np.copy(p)
-                    e4a=e4a*j
+#             if (nz >1):
+#                 for j in f:
+#                     e4a=np.copy(p)
+#                     e4a=e4a*j
                     
-                    e4a[:,inx[:,0]]=d[inx[:,0]]-e4a[:,inx[:,0]]
+#                     e4a[:,inx[:,0]]=d[inx[:,0]]-e4a[:,inx[:,0]]
                     
-                    if (np.all(e4a>=imin) and np.all(e4a<=imax)):
-                        pts.append(e4a)
+#                     if (np.all(e4a>=imin) and np.all(e4a<=imax)):
+#                         pts.append(e4a)
         
-    return pts
+#     return pts

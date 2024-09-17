@@ -6,28 +6,23 @@ warnings.filterwarnings('ignore')
 import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
-from matplotlib import cm
-from itertools import permutations, combinations
 
 from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, mark_inset)
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 from shapely.geometry import Point, Polygon
 
-from psc.g_space import g, hsurf_g, F, hsurf_F, hsurf_F2
-from psc.x2Dlinearize import double_segment_EPA, double_segment_nEPA, single_segment_EPA, single_segment_nEPA 
-from psc.x2Dpolygon import multistrip, getploygons_EPA_SS, getploygons_EPA_DS, getploygons_nEPA, polyintersect, get_error
-from psc.x2Drepetition import linrep_DS, linrep_SS, writedata, getsigncom, mesh
-from psc.x2Dplot import plot_segment, plotisosurf_EPA, plotisosurf_nEPA
-from psc.x2Dwritesolution import pseudosolution, realsolution, isInside, analyzesolution
+from .g_space import g, hsurf_g, F, hsurf_F, hsurf_F2
+from .x2Dlinearize import double_segment_EPA, double_segment_nEPA, single_segment_EPA, single_segment_nEPA 
+from .x2Dpolygon import multistrip, getploygons_EPA_SS, getploygons_EPA_DS, getploygons_nEPA, polyintersect
+from .x2Drepetition import linrep_DS, linrep_SS, writedata
+from ..tools.x2Dplot import plot_segment, plotisosurf_EPA, plotisosurf_nEPA
+from .x2Dwritesolution import get_error, pseudosolution, realsolution, isInside, analyzesolution
 
-
+from .x3Drepetition import getmesh, getsigncombination
 
 
 # ---------------------- nEPA MODEL
-
-
 
 def solve2Dstrucutre_nEPA(totalRO:int, scatteringfactors:list, structure:list,
                                       SingleorDoublesegement:str='single',
@@ -103,7 +98,7 @@ def solve2Dstrucutre_nEPA(totalRO:int, scatteringfactors:list, structure:list,
             
         #---> inearization process with error of err 
         errr = 0
-        meshlist = mesh(l, f, imax=0.5)
+        meshlist = getmesh(l, f, imax=0.5)
         
         if SingleorDoublesegement == 'single':
             #---> single segment method - EPA
@@ -220,7 +215,7 @@ def solve2Dstrucutre_EPA(totalRO:int, structure:list, IorG='intensity',
         
         #---> inearization process with error of err 
         errr = 0
-        meshlist = mesh(l, f, imax)
+        meshlist = getmesh(l, f, imax)
 
         #---> Select which approach you want
         if SingleorDoublesegement == 'double':

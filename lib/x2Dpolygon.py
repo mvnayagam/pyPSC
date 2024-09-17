@@ -1,8 +1,7 @@
-import array
 import numpy as np
 
 import shapely
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import Polygon
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 
@@ -16,19 +15,7 @@ def multistrip(r1:int, r2:int, pnts):
         d.append(d1)
     return shapely.geometry.MultiPolygon([poly for poly in d])
 
-def get_error(d):  # before: get_error_v3(d)
-    xlist=d[0]
-    ylist=d[1]
-    
-    x_min=np.min(xlist)
-    x_max=np.max(xlist)
-    y_min=np.min(ylist)
-    y_max=np.max(ylist)
-    
-    dx = (x_min-x_max)/2
-    dy = (y_min-y_max)/2
-    
-    return (dx, dy)
+
 
 # -------------------- For EPA linearization
 
@@ -132,8 +119,6 @@ def polyintersect(h:int, polylist: list, fname: str):
         
     #return (s, j)
     return s
-
-
 
 
 def polyintersect_MC(h:int, polylist: list, xcoor: list, fname: str, count: int=0):

@@ -1,29 +1,17 @@
 ## Import basic libs
-import scipy, sys, os, re, ase
+import scipy, sys, os, re
 import numpy as np
 from pathlib import Path
+from scipy.optimize import fsolve
 from itertools import permutations, combinations
-from psc.g_space import *
 
 import shapely
 from shapely.geometry import Polygon, mapping, Point
-from descartes import PolygonPatch
+#from descartes import PolygonPatch
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 
-from scipy.optimize import fsolve
-
-from psc.g_space import hsurf_lin_2D as hsurf_lin
-from scipy.optimize import fsolve
-from shapely.validation import make_valid
-from itertools import permutations, combinations
-
-from pathlib import Path
-from shapely.geometry import Polygon, mapping, Point
-from descartes import PolygonPatch
-from shapely.validation import make_valid
-from shapely.ops import unary_union
-
+from ..lib.g_space import g, F, hsurf_F, hsurf_g, hsurf_F2
 
 ## My defs'
 
@@ -31,7 +19,7 @@ def fn_getEO(h, xcoor, f):
     eo   = []
     
     for l in range(1,h+1,1):
-        gi = np.abs(g3d(l, xcoor, f))
+        gi = np.abs(g(l, xcoor, f))
         eo.append([gi, l])
     
     eo    = np.array(eo)
@@ -45,21 +33,21 @@ def fn_getEO(h, xcoor, f):
     
     return (Is_high, Is_low)
 
-
-def fn_multistrip(a,b,pnts):
+def multistrip(a,b,pnts):
     d=[]
     for i in range(a,b,1):
         d1=Polygon([(pnts[i][j], pnts[i][j+1]) for j in range(0,8,2)])
         d.append(d1)
     return shapely.geometry.MultiPolygon([poly for poly in d])
 
-
 def fn_getpolygon(hsi, p, imax=0.5):
+    
     r1, r2 = 0, 0
-    a, err = [], []
+    a = []
+    
     for i in hsi:
         r2=r2+i*i*(4*imax)**2
-        aa = fn_multistrip(int (r1), int (r2), p)
+        aa = multistrip(int (r1), int (r2), p)
         
         try:
             aa = unary_union(aa)
@@ -71,7 +59,8 @@ def fn_getpolygon(hsi, p, imax=0.5):
         r1=np.copy(r2)
     return a
 
-def fn_intersection(a):
+
+def fn_intersection(a): # somehow same as getintersections(h,a,xexp,fname,count)
     s = []
     
     for j in range(len(a)-1):
@@ -91,27 +80,29 @@ def fn_intersection(a):
     
     return s
 
-def fn_plotisosurface(l, h, g1, g2, imax, ax):
+def getintersections(h,a,xexp,fname,count):
     
-    for hi in range(l+1):
-        if ( (hi/l <= imax and h%2 !=0) or (hi/l <= imax and h%2 ==0) ):
-            if hi == 0:
-                ax.plot(isos, giso1 + hi/l, '-' , c=cc,label='g(%g, %1.2f)'%(l, gi))
-                ax.plot(isos, giso2 + hi/l, '--' ,c=cc)
+    s  = []
+    
+    for j in range(h-1):
+        #print("Doing for j's upto :: ", j+1," with j = ",j+2)
+        try:
+            if j == 0:
+                ss = a[j].intersection(a[j+1])
             else:
-                if (hi/l < imax and l%(2*hi) !=0):
-                    ax.plot(isos, giso1 + hi/l, '-',  c=cc)
-                    ax.plot(isos, giso2 + hi/l, '--', c=cc)
-                ax.plot(isos, -1*giso1  + hi/l, '-',  c=cc)
-                ax.plot(isos, -1*giso2  + hi/l, '--', c=cc)
-                if (hi/l < imax and l%(2*hi) ==0):
-                    ax.plot(isos, giso1    + hi/l, '-',  c=cc)
-                    ax.plot(isos, giso2    + hi/l, '--', c=cc)
-                
-            if (l%(2*l) == 0 and l/h <= imax):
-                ax.plot(isos, -1*giso1 + (hi+2)/l, '-',  c=cc)
-                ax.plot(isos, -1*giso2 + (hi+2)/l, '--', c=cc)
-    return
+                ss = s[-1].intersection(a[j+1])
+        except:
+            fname.write('Pair-{} : TopologyException error for x1 = {:2.4} and x2 = {:2.4} at h = {}\n'.format(count,xexp[0], xexp[1], (j+1)))
+            continue
+        
+        if not ss:
+            #print("===> ss is empty for j = ", j+2)
+            ss=s[-1]
+        
+        s.append(ss)
+        
+    return s, j
+
 
 def fn_get_orderedI(h, xexp, f, skip12=True):
     eo   = []
@@ -119,7 +110,7 @@ def fn_get_orderedI(h, xexp, f, skip12=True):
     if skip12:
         
         for l in range(3,h+1,1):
-            gi = np.abs(g3d(l, xexp, f))
+            gi = np.abs(g(l, xexp, f))
             eo.append([gi, l])
             
         eo  = np.array(eo)
@@ -130,7 +121,7 @@ def fn_get_orderedI(h, xexp, f, skip12=True):
     else:
         
         for l in range(1,h+1,1):
-            gi = np.abs(g3d(l, xexp, f))
+            gi = np.abs(g(l, xexp, f))
             eo.append([gi, l])
             
         eo  = np.array(eo)
@@ -163,7 +154,6 @@ def writesolution(fcoor, polys):
     
     return
 
-
 def pseudosolution(x,y,fnpoly):  
     for xl in range(len(x)):        
         if xl == len(x)-1:
@@ -183,8 +173,7 @@ def realsolution(x,y,fcoor):
 def finesortsolu(x, icentroid):
     dx=np.abs(x[0] - icentroid.x) 
     dy=np.abs(x[1] - icentroid.y)
-    #print("=======  dx and dy are ", dx, dy, "\n")
-    #print("=======  x[0], x[1], icentroid ", x[0], x[1],icentroid.x, icentroid.y)
+    
     if dx<1E-3 or dy <1E-3:
         return True
     else:
@@ -209,21 +198,7 @@ def sortsolu(finals, fcoor, xexp):
             if (isInside([x[ii],y[ii]])):
                 realsolution(x, y, fcoor)
                 break
-                
- 
-def g3d(h, x, f):
-    #if len(x) != len(f):
-        #print("\x1b[1;31;43m===> len(x) and len(f) are not same. I am exciting")
-        #sys.exit()
-
-    return ( sum([f[i]*np.cos(2*np.pi*h*x[i]) for i in range(len(x))] ))
-
-def hsurf_g(h,x,f,gi,j,s=1):
-    k = 2*np.pi*h
-    for i in range(len(x)):
-        argm = s*gi/f[j] - (f[i]/f[j])*(np.cos(k*x[i]))
-    xj = (np.arccos(argm))/k
-    return xj
+    return
 
 def find_interception(x,y,m):
     return y-m*x
@@ -233,7 +208,6 @@ def findp3x(x, m, g=1.5, h=1):
 
 def findp3y(x,h,g):
     return 1/(2*np.pi*h)*np.arccos(g-np.cos(2*np.pi*h*x))
-
 
 def jonaspnts(gi,l):
     #### Jonas Area 
@@ -266,39 +240,6 @@ def jonaspnts(gi,l):
     pnt  = np.array([[p1x, p1y], [p2x, p2y], [p3x, p3y], [p4x, p4y],[ p5x, p5y]])
     
     return pnt
-
-def isosurfs(h,xexp,f,j,fname):
-    dlist=[]
-    npts = 500
-    isos = np.linspace(0., 0.5, npts)
-    grid = [isos, isos]
-    
-    for l in range(1,h+1):
-        gi    = np.abs(g3d(l, xexp, f))
-        giso1 = hsurf_g(l, grid, f, gi, j, s=1)
-        giso2 = hsurf_g(l, grid, f, gi, j, s=-1)
-    
-        pnts = jonaspnts(gi,l)
-        
-        signcom  = fn_signcombination(len(xexp))
-        meshlist = fn_mesh(l, xexp, isos.max())
-            
-        for meshid in meshlist:
-            oo=np.cos(2*np.pi*l*meshid)
-            if (np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1)):
-                d = np.array(meshid)
-                dlist.append(meshid)
-                plist=fn_repeat(pnts, d, signcom, isos.min(), isos.max())                
-                
-                if plist:
-                    
-                    fn_write(fname, plist)
-                    plistn=np.flip(np.flip(plist, axis=1))
-                    fn_write(fname,plistn)
-        
-    return()
-
-
 
 def jonaspnts_newa(gi,l,f):
     #### Jonas Area 
@@ -339,94 +280,6 @@ def jonaspnts_newa(gi,l,f):
     return pnt
 
 
-
-def isosurfs_newa(h,xexp,f,j,fname):
-    dlist=[]
-    npts = 500
-    isos = np.linspace(0., 0.5, npts)
-    grid = [isos, isos]
-    
-    for l in range(1,h+1):
-        gi    = np.abs(g3d(l, xexp, f))
-        giso1 = hsurf_g(l, grid, f, gi, j, s=1)
-        giso2 = hsurf_g(l, grid, f, gi, j, s=-1)
-    
-        pnts = jonaspnts_newa(gi,l, f)
-        
-        signcom  = fn_signcombination(len(xexp))
-        meshlist = fn_mesh(l, xexp, isos.max())
-            
-        for meshid in meshlist:
-            oo=np.cos(2*np.pi*l*meshid)
-            if (np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1)):
-                d = np.array(meshid)
-                dlist.append(meshid)
-                plist=fn_repeat(pnts, d, signcom, isos.min(), isos.max())                
-                
-                if plist:
-                    
-                    fn_write(fname, plist)
-                    plistn=np.flip(np.flip(plist, axis=1))
-                    fn_write(fname,plistn)
-        
-    return()
-
-
-def multistrip(a,b,pnts):
-    d=[]
-    for i in range(a,b,1):
-        d1=Polygon([(pnts[i,j], pnts[i,j+1]) for j in range(0,8,2)])
-        d.append(d1)
-    return shapely.geometry.MultiPolygon([poly for poly in d])
-
-
-def getploy(h,points):
-    
-    r1, r2 = 0, 0
-    a  = []
-    
-    for i in range(1,h+1):
-        #r1 = r1+4*(i-1)**2
-        #r2 = r2+4*i*i
-        
-        r2=r2+i*i*(4*isos.max())**2
-        aa = multistrip(int(r1), int(r2),points)
-        
-        try:
-            aa = unary_union(aa)
-        except:
-            print("AssertionFailedException occured for RO h=", i, "trying with make_valid")
-            aa = make_valid(aa)
-            
-        a.append(aa)
-        r1=np.copy(r2)
-        
-    return (a)
-
-def getintersections(h,a,xexp,fname,count):
-    
-    s  = []
-    
-    for j in range(h-1):
-        #print("Doing for j's upto :: ", j+1," with j = ",j+2)
-        try:
-            if j == 0:
-                ss = a[j].intersection(a[j+1])
-            else:
-                ss = s[-1].intersection(a[j+1])
-        except:
-            fname.write('Pair-{} : TopologyException error for x1 = {:2.4} and x2 = {:2.4} at h = {}\n'.format(count,xexp[0], xexp[1], (j+1)))
-            continue
-        
-        if not ss:
-            #print("===> ss is empty for j = ", j+2)
-            ss=s[-1]
-        
-        s.append(ss)
-        
-    return (s, j)
-
-
 def writepolygons(fname, polys):
     
     for i in polys:
@@ -438,7 +291,6 @@ def writepolygons(fname, polys):
         fname.write("\n")
     
     return ()
-
 
 def isInside(p, v1=np.array([0.0, 0.0]), v2=np.array([0.5,0.0]), v3=np.array([0.25, 0.25])):
     
@@ -498,68 +350,6 @@ def get_error_v2(d):
     
     return (dx, dy)
 
-
-# def get_error(d,xexp):
-#     meanx=np.mean(d[0])
-#     meany=np.mean(d[1])
-    
-#     if np.abs(xexp[0]-meanx)<0.05:
-#         xe = xexp[0]-meanx
-#     elif np.abs(xexp[0]-meany)<0.05:
-#         xe = xexp[0]-meany
-#     elif np.abs(xexp[0]+meanx-0.5)<0.05:
-#         xe = xexp[0]+meanx-0.5
-#     elif np.abs(xexp[0]+meany-0.5)<0.05:
-#         xe = xexp[0]+meany-0.5
-#     else:
-#         xe='none'
-#         print("nothing is possible for ",d[0],"  and  ", d[1])
-    
-#     if np.abs(xexp[1]-meany)<0.05:
-#         ye = xexp[1]-meany
-#     elif np.abs(xexp[1]-meanx)<0.05:
-#         ye = xexp[1]-meanx
-#     elif np.abs(xexp[1]+meany-0.5)<0.05:
-#         ye = xexp[1]+meany-0.5
-#     elif np.abs(xexp[1]+meanx-0.5)<0.05:
-#         ye = xexp[1]+meanx-0.5
-#     else:
-#         ye='none'
-#         print("nothing is possible")
-    
-#     return (xe, ye)
-
-# def get_error_new(d):
-#     meanx=np.mean([d[i] for i in range(3,len(d), 2)])
-#     meany=np.mean([d[i] for i in range(4,len(d), 2)])
-    
-#     if np.abs(d[0]-meanx)<0.05:
-#         xe = d[0]-meanx
-#     elif np.abs(d[0]-meany)<0.05:
-#         xe = d[0]-meany
-#     elif np.abs(d[0]+meanx-0.5)<0.05:
-#         xe = d[0]+meanx-0.5
-#     elif np.abs(d[0]+meany-0.5)<0.05:
-#         xe = d[0]+meany-0.5
-#     else:
-#         xe=None
-#         print("nothing is possible for ",d[0],"  and  ", d[1],"\x1b[1;32m since xe is :: ", xe)
-        
-#     if np.abs(d[1]-meany)<0.05:
-#         ye = d[1]-meany
-#     elif np.abs(d[1]-meanx)<0.05:
-#         ye = d[1]-meanx
-#     elif np.abs(d[1]+meany-0.5)<0.05:
-#         ye = d[1]+meany-0.5
-#     elif np.abs(d[1]+meanx-0.5)<0.05:
-#         ye = d[1]+meanx-0.5
-#     else:
-#         ye=None
-#         print("nothing is possible for ",d[0],"  and  ", d[1],"\x1b[1;32m since ye is :: ", ye)
-        
-#     return (xe, ye)
-
-
 def pseudosolution(x,y,fnpoly):  
     for xl in range(len(x)):        
         if xl == len(x)-1:
@@ -575,7 +365,6 @@ def realsolution(x,y,fcoor):
         else:
             fcoor.write("%2.12f\t %2.12f\t"%(x[xl], y[xl]))
     return
-
 
 def fn_write(fn, data):
     
@@ -596,17 +385,6 @@ def fn_write(fn, data):
                 countc += 1
             countr += 1    
     return()
-
-
-def fn_signcombination(r):
-    f=[]
-    
-    for i in range(1, r+1):
-        t = [-1]*i+[1]*(r-i)
-        w = set(permutations(t))
-        for u in w:
-            f.append(u)
-    return np.array(f)
 
 def fn_repeat(p, d, f, imin, imax):
     
@@ -648,21 +426,3 @@ def fn_repeat(p, d, f, imin, imax):
         
     return pts
 
-
-def fn_mesh(l, coordinates, imax):
-    
-    c = np.linspace(0,imax,int(2*l*imax+1) )
-    
-    k = [c, c]*len(coordinates)
-    k = k[0:len(coordinates)]
-    
-    j = np.meshgrid(*k)
-    
-    [*dim] = np.shape(j)
-    
-    f1=(np.array([j[i].reshape(-1,1) for i in range([*dim][0])]))
-    f2=np.hstack([f1[i] for i in range([*dim][0])])
-    
-    meshlist=np.array(f2)
-    
-    return meshlist

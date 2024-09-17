@@ -21,6 +21,8 @@ You can install `pyPSC` using `pip`:
 
 ```bash
 pip install git+https://github.com/mvnayagam/pyPSC.git
+or
+pip install pypsc
 ```
 
 ## Usage
@@ -28,18 +30,9 @@ pip install git+https://github.com/mvnayagam/pyPSC.git
 To start using `pyPSC`, you can import the necessary modules and run calculations on crystal structures based on diffraction data. Below is a simple example of how you might use the library:
 
 ```python
-import pyPSC
-
-# Load diffraction data and initialize parameter space
-diffraction_data = pyPSC.load_data('data.hkl')
-
-# Run the PSC algorithm to find possible structures
-solutions = pyPSC.find_structures(diffraction_data)
-
-# Output the solutions
-for solution in solutions:
-    print(solution)
+import pypsc
 ```
+For for information, see the examples. 
 
 ## Methodology
 
@@ -56,24 +49,54 @@ The algorithm has been tested with Monte-Carlo simulations, illustrating its eff
 
 ## Examples
 
-### Example 1: Two-Atom Structure
+### Example 04 - Two-Atom Structure 
 ```python
-from pyPSC import simulate
+from psc.lib.g_space import g
+from psc.lib.x3Dlinearizazion import linearizenD_EPA
+from psc.lib.x3Drepetition import getpolytope_EPA  
+from psc.lib.x3Dchecklinearization import checklinear
+from psc.lib.x3Dintersection import find_intersection
+from psc.lib.x3Dreadwrite import wrtdata
 
 # Simulate a two-atom structure and project to 1D
-structure = simulate.two_atom_structure()
-projection = pyPSC.project_to_1D(structure)
-print(projection)
-```
+xcoor  = np.sort(xcoor)[::-1]
 
-### Example 2: Three-Atom Structure
-```python
-from pyPSC import simulate
+# EPA model
+f     = [1, 1]
 
-# Simulate a three-atom structure and project to 1D
-structure = simulate.three_atom_structure()
-projection = pyPSC.project_to_1D(structure)
-print(projection)
+# Define reflection
+l = 3
+# calculate amplitude for given strucutre and RO
+gi    = np.abs(g(l, xcoor, f))
+
+# calculate the isosurface over entrie PS using above gi for s=+1 and s=-1
+giso1 = hsurf_g(l, grid, f, gi, j, s=1)
+giso2 = hsurf_g(l, grid, f, gi, j, s=-1)
+
+# plot calculated isosurfcae. define cc='k' if same is wanted. or isosurface colour will change automatically
+r = np.random.uniform(0.0, 0.8, 3) ; cc = (r[0],r[1],r[2],1)
+plotisosurf_EPA(l, h, gi, ax, isos, giso1, giso2, cc, lw=2, imax=0.5)
+
+#---> inearization process with error of err 
+errr = 0
+meshlist = getmesh(l, xcoor, isos.max())
+
+#---> double segment method - EPA
+pnts = double_segment_EPA(gi, l, f, error=0)
+plist=linrep_DS(l, f, pnts, meshlist, imin=0, imax=0.5)
+
+#---> single segment method - EPA
+#pnts = single_segment_EPA(gi, l, xexp, f, error=0)
+#plist=linrep_SS(l, f, pnts, meshlist, imin=0, imax=0.5)
+
+#---> plot segments
+plot_segment(ax, plist, cc)
+
+#---> storing segment data
+writedata(fn, plist)
+
+# ---> Writting found solutions from given ROs
+analyzesolution(solution, xcoor, plotting=True)
 ```
 
 ## Documentation

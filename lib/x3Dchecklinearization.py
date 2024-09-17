@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import polytope as pc
 from .g_space import g, F, hsurf_g, hsurf_F, hsurf_F2
-from .x3Dplot import plot_polytope
+from ..tools.x3Dplot import plot_polytope
 
 
 def getpoly_mitd( l, normal, distance, scom, dlist, imax=1/6):
@@ -56,65 +56,6 @@ def getpoly_mitd( l, normal, distance, scom, dlist, imax=1/6):
                         polylist.append(w)
                 
     return pc.Region(polylist)
-
-
-# def checklinear(l: int, xcoor: list, f: list, normal: list, distance: list, j: int=2, n: int=20, s:int =1, testiso: bool=True):
-    
-#     """_Checks the quality of linearization. This is for EPA model not for non-EPA_
-#     Args:
-#         l (int)          : _The reflection order to be processed_
-#         xcoor (list)     : _ Given atomic structure_
-#         f (list)         : _atomic scattering factors it is actually [1.0]*len(xcoor)_
-#         normal (list)    : _Found normal vector of isosurface of l_
-#         distance (list)  : _Distance of inner and outer boundaries_
-#         j (int, optional): _The atom index along last axis_. Defaults to 2.
-#         n (int, optional): _Number of points to create isosurface_. Defaults to 20.
-#         s (int, optional): _sign of amplitude_. Defaults to 1.
-#         testiso (bool, optional): _Testing the isosurface_. Defaults to True.
-#     """
-     
-#     # Create a linearly spaced array for the polytope's boundary
-#     lspace = np.linspace(0, 1 / (2 * l), n)
-
-#     # Generate the meshgrid for k-space dimensions
-#     kz = np.meshgrid(*([lspace] * (len(f) - 1))) ; kz = list(kz)
-
-#     # Compute the surface and isosurface points
-#     gi = np.abs(g(l, xcoor, f))
-#     gzp = hsurf_g(l, kz, f, gi, j=len(f)-1, s=s)
-
-#     # Calculate the polytope
-#     o = getpoly_mitd(
-#         l, normal, distance,
-#         scom=np.ones((1, len(f))),
-#         dlist=np.zeros((1, len(f))),
-#         imax=lspace.max()
-#     )
-    
-#     # Flatten each 3D array in kz and the gzp array
-#     kz_flattened = [kz_i.flatten() for kz_i in kz]
-#     gzp_flattened = gzp.flatten()
-    
-#     # Stack the flattened arrays column-wise to get the desired 2D array
-#     iso_grid = np.vstack(kz_flattened + [gzp_flattened]).T
-#     valid_iso_grid = iso_grid[~np.isnan(iso_grid).any(axis=1)]
-    
-#     # Check for isosurface containment within the polytope if required
-#     if testiso:
-#         # kz.append(np.array(gzp))  # Add isosurface points
-#         # tz = np.vstack(np.dstack(kz))  # Stack all arrays along the third axis
-#         # Check if any point lies outside the polytope
-        
-#         outside_points = [ti for ti in valid_iso_grid if ti not in o]
-        
-#         if outside_points:
-#             print(f"\x1b[1;31m--> Checking the quality of linearization process")
-#             print(f"\n--> Found isosurface outside for the point at {len(outside_points)} locations")
-#             print("\x1b[1;31m--> Check the linearization step <--\x1b[0m")
-#             raise ValueError("\x1b[1;32m--> Exiting: Linearization failed as isosurface points are outside the polytope\x1b[0m")
-#         else:
-#             print("\x1b[1;32m--> Polytope contains complete isosurface. Successful Linearization for \x1b[1;31mRO = %g\x1b[0m" % l)
-#     return
 
 def checklinear(l: int, f: list, I: float, normal: list, distance: list, j: int=2, n: int=20, s:int =1, testiso: bool=True):
         
@@ -178,7 +119,6 @@ def checklinear(l: int, f: list, I: float, normal: list, distance: list, j: int=
             status = True
     return status, dt_corrected
 
-
 def checklinearplot(l, xexp, f, normal, distance, j=2,n=100, s=1, testiso=True, plot=True):
     
     lspace  = np.linspace(0, 1/(2*l), n)
@@ -224,7 +164,6 @@ def checklinearplot(l, xexp, f, normal, distance, j=2,n=100, s=1, testiso=True, 
         ax.plot_surface(kz[0], kz[1], gzp, color='k', alpha=0.5, antialiased=True,facecolor='r', linewidth=0)
         v=plot_polytope(o[0], ax, alpha=0.15, color ='C0')
 
-
 def checklinear_I(l, I, f, normal, distance, n=100, s=1):
     
     j = len(f)-1
@@ -253,7 +192,68 @@ def checklinear_I(l, I, f, normal, distance, n=100, s=1):
     else:
         return True
 
+
+
 # Old function. delte may later
+
+# def checklinear(l: int, xcoor: list, f: list, normal: list, distance: list, j: int=2, n: int=20, s:int =1, testiso: bool=True):
+    
+#     """_Checks the quality of linearization. This is for EPA model not for non-EPA_
+#     Args:
+#         l (int)          : _The reflection order to be processed_
+#         xcoor (list)     : _ Given atomic structure_
+#         f (list)         : _atomic scattering factors it is actually [1.0]*len(xcoor)_
+#         normal (list)    : _Found normal vector of isosurface of l_
+#         distance (list)  : _Distance of inner and outer boundaries_
+#         j (int, optional): _The atom index along last axis_. Defaults to 2.
+#         n (int, optional): _Number of points to create isosurface_. Defaults to 20.
+#         s (int, optional): _sign of amplitude_. Defaults to 1.
+#         testiso (bool, optional): _Testing the isosurface_. Defaults to True.
+#     """
+     
+#     # Create a linearly spaced array for the polytope's boundary
+#     lspace = np.linspace(0, 1 / (2 * l), n)
+
+#     # Generate the meshgrid for k-space dimensions
+#     kz = np.meshgrid(*([lspace] * (len(f) - 1))) ; kz = list(kz)
+
+#     # Compute the surface and isosurface points
+#     gi = np.abs(g(l, xcoor, f))
+#     gzp = hsurf_g(l, kz, f, gi, j=len(f)-1, s=s)
+
+#     # Calculate the polytope
+#     o = getpoly_mitd(
+#         l, normal, distance,
+#         scom=np.ones((1, len(f))),
+#         dlist=np.zeros((1, len(f))),
+#         imax=lspace.max()
+#     )
+    
+#     # Flatten each 3D array in kz and the gzp array
+#     kz_flattened = [kz_i.flatten() for kz_i in kz]
+#     gzp_flattened = gzp.flatten()
+    
+#     # Stack the flattened arrays column-wise to get the desired 2D array
+#     iso_grid = np.vstack(kz_flattened + [gzp_flattened]).T
+#     valid_iso_grid = iso_grid[~np.isnan(iso_grid).any(axis=1)]
+    
+#     # Check for isosurface containment within the polytope if required
+#     if testiso:
+#         # kz.append(np.array(gzp))  # Add isosurface points
+#         # tz = np.vstack(np.dstack(kz))  # Stack all arrays along the third axis
+#         # Check if any point lies outside the polytope
+        
+#         outside_points = [ti for ti in valid_iso_grid if ti not in o]
+        
+#         if outside_points:
+#             print(f"\x1b[1;31m--> Checking the quality of linearization process")
+#             print(f"\n--> Found isosurface outside for the point at {len(outside_points)} locations")
+#             print("\x1b[1;31m--> Check the linearization step <--\x1b[0m")
+#             raise ValueError("\x1b[1;32m--> Exiting: Linearization failed as isosurface points are outside the polytope\x1b[0m")
+#         else:
+#             print("\x1b[1;32m--> Polytope contains complete isosurface. Successful Linearization for \x1b[1;31mRO = %g\x1b[0m" % l)
+#     return
+
 # def checklinear(l: int, xcoor: list, f: list, normal: list, distance: list, j: int=2, n: int=100, s:int =1, testiso: bool=True):
 #     """_Checks the quality of linearization. This is for EPA model not for non-EPA_
 #     Args:

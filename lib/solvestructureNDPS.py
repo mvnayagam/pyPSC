@@ -10,19 +10,21 @@ import polytope as pc
 
 from datetime import datetime
 
-from psc.g_space import g, F, hsurf_F2, hsurf_g
-from psc.x3Dlinearizazion import linearizenD_EPA, linearizenD_nEPA
-from psc.x3Drepetition import getpolytope_EPA , getpolytope_nEPA
-from psc.x3Dintersection import find_intersection
-from psc.x3Dreadwrite import wrtcoor, wrtdata, wrtallsolution, wrttime_mc
+from .g_space import g, F, hsurf_F2, hsurf_g
+from .x3Dlinearizazion import linearizenD_EPA, linearizenD_nEPA
+from .x3Drepetition import getpolytope_EPA , getpolytope_nEPA
+from .x3Dintersection import find_intersection
+from .x3Dreadwrite import wrtcoor, wrtdata, wrtallsolution, wrttime_mc
 
 
 
 # ============== Modules for EPA ==============
 
-def solvenDstrucutre_EPA(dimension: int, structure: list=[], totalRO: int=9, 
-                         IorG: str='amplitude', imax=0.5) -> None:
+def solvenDstrucutre_EPA(dimension: int, structure: list=[], totalRO: int=9, IorG: str='amplitude', imax=0.5) -> None:
     
+    """
+    Tries to solve structure under EPA model.
+    """
     TS0=datetime.now()
     sn = []
     polyFirstRO = []

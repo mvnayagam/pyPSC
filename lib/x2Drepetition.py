@@ -1,5 +1,6 @@
 import numpy as np
-from itertools import permutations, combinations
+from itertools import permutations
+from .x3Drepetition import getsigncombination
 
 
 def repeat2D(p, d, f, imin, imax):
@@ -42,44 +43,10 @@ def repeat2D(p, d, f, imin, imax):
         
     return pts
 
-def mesh(l, coordinates, imax):
-    
-    c = np.linspace(0,imax,int(2*l*imax+1) )
-    
-    k = [c, c]*len(coordinates)
-    k = k[0:len(coordinates)]
-    
-    j = np.meshgrid(*k)
-    
-    [*dim] = np.shape(j)
-    
-    f1=(np.array([j[i].reshape(-1,1) for i in range([*dim][0])]))
-    f2=np.hstack([f1[i] for i in range([*dim][0])])
-    
-    meshlist=np.array(f2)
-
-    plist = []
-    for meshid in meshlist:
-        oo=np.cos(2*np.pi*l*meshid)
-        if (np.all(np.sign(oo) == 1) or np.all(np.sign(oo) == -1)):
-            plist.append(meshid)
-       
-    return np.array(plist)
-
-def getsigncom(r):
-    scom=[]
-
-    for i in range(0, r+1):
-        t = [-1]*i+[1]*(r-i)
-        w = set(permutations(t))
-        for u in w:
-            scom.append(u)
-    return np.array(scom)
-
 def linrep_DS(h, f, pnt, meshgrid, IorG='intensity', signofIorG=1, imin=0, imax=0.5):
     
     plist   = []
-    signcom = getsigncom(len(f))
+    signcom = getsigncombination(len(f))
     
     for i in signcom:
         pinner  = pnt*i
@@ -111,7 +78,7 @@ def linrep_DS(h, f, pnt, meshgrid, IorG='intensity', signofIorG=1, imin=0, imax=
 def linrep_SS(h, f, pnt, meshgrid, IorG='intensity', signofIorG=1, imin=0, imax=0.5):
         
     plist   = []
-    signcom = getsigncom(len(f))
+    signcom = getsigncombination(len(f))
     
     for i in signcom:
         pinner  = pnt*i

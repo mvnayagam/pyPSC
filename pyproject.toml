@@ -27,29 +27,19 @@ dependencies = [
     "shapely >= 2.0.6"
 ]
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+
 [project.urls]
-Documentation = "https://github.com/mvnayagam/pyPSC.git"
-Repository = "https://github.com/mvnayagam/pyPSC.git"
-Issues = "https://github.com/mvnayagam/pyPSC/issues"
+Documentation = "https://github.com/mvnayagam/pypsc.git"
+Repository = "https://github.com/mvnayagam/pypsc.git"
+Issues = "https://github.com/mvnayagam/pypsc/issues"
 
 [tool.setuptools.packages.find]
-include = ["*"]
+include = ["psc*"]
 
 [tool.pylint.MASTER]
 ignore-paths = ["^docs/.*$", "setup.py"]
-
-[tool.black]
-line-length = 88
-force-exclude = '''
-
-(
-  /(
-      \.git          # root of the project
-    | docs
-  )/
-  | setup.py
-)
-'''
 
 [tool.mypy]
 warn_return_any = true

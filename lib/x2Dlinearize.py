@@ -1,16 +1,32 @@
 import numpy as np
 
-
-# -------------------- EPA linearization
+# ----------------------------------------------
+# ====================> General fns
+# ----------------------------------------------
 
 def find_interception(x,y,m):
     return y-m*x
 
-def findp3x(x, m, g, h):
-    return m+np.sin(2*np.pi*h*x)/np.sqrt(1- (g - np.cos(2*np.pi*h*x))**2) 
+def findp3x(x, m, gi, h):
+    k=2*np.pi*h
+    return m+np.sin(k*x)/np.sqrt(1- (gi - np.cos(k*x))**2) 
 
-def findp3y(x,h,g):
-    return 1/(2*np.pi*h)*np.arccos(g-np.cos(2*np.pi*h*x))
+def findp3y(x,h,gi):
+    k=2*np.pi*h
+    return (1/(k))*np.arccos(gi-np.cos(k*x))
+
+def findpy(x,h,gi,f):
+    k=2*np.pi*h
+    return (1/k)*np.arccos(gi/f[1] - (f[0]/f[1])*np.cos(k*x))
+
+def findpx(y,h,gi,f):
+    k=2*np.pi*h
+    return (1/k)*np.arccos(gi/f[0] - (f[1]/f[0])*np.cos(k*y))
+
+
+# ----------------------------------------------
+# ====================> EPA linearization
+# ----------------------------------------------
 
 def double_segment_EPA(gi, l, f, error=0):
     
@@ -30,8 +46,9 @@ def double_segment_EPA(gi, l, f, error=0):
     #### Finding point p3, p4 and p5
     
     j = 1
-    p5x, p5y = fn_solveforx_v2(l, gi, f, m1, j, error)
-    
+    p5 = fn_solveforx_v2(l, gi, f, m1, j, error)[0]
+    p5x, p5y = p5[0], p5[1]
+        
     n2   = find_interception(p5x,p5y,m1)
     
     p4x  = -n2 / (m1-1)
@@ -79,7 +96,10 @@ def single_segment_EPA(gi, l, f, error=0):
     return pnt
 
 
-# -------------------- nEPA linearization
+# ----------------------------------------------
+# ====================> nEPA linearization
+# ----------------------------------------------
+
 
 def single_segment_nEPA(gi, l, f, j=1, error=0):
     pnt = []
@@ -182,7 +202,6 @@ def single_segment_nEPA(gi, l, f, j=1, error=0):
         pnt.append([p5x, p5y])
         
     return np.array(pnt)
-
 
 def double_segment_nEPA(gi, l, f, j=1, error=0):
     pnt, pntLB, pntUB = [], [], []
@@ -324,15 +343,6 @@ def double_segment_nEPA(gi, l, f, j=1, error=0):
         pnt.append([p1x, p1y])
                 
     return np.array(pnt)
-
-
-def findpy(x,h,gi,f):
-    return (1/(2*np.pi*h))*np.arccos(gi/f[1] - (f[0]/f[1])*np.cos(2*np.pi*h*x))
-
-def findpx(y,h,gi,f):
-    return (1/(2*np.pi*h))*np.arccos(gi/f[0] - (f[1]/f[0])*np.cos(2*np.pi*h*y))
-
-
 
 def fn_solveforx_v2(l, gi, f, m, j, error):
     

@@ -1,13 +1,9 @@
 
 import numpy as np
-
-from pathlib import Path
-import sys, os, re
+import sys
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, mark_inset)
-from shapely.validation import make_valid
-from shapely.ops import unary_union
 
 
 def writepolygons(fname, polys):
@@ -86,7 +82,6 @@ def realsolution(x,y,fcoor):
             fcoor.write("%2.12f\t %2.12f\t"%(x[xl], y[xl]))
     return
 
-
 def analyzesolution(solution, xcoor, plotting=True, imax=0.5):
    
     xlim, ylim = [], []
@@ -115,7 +110,7 @@ def analyzesolution(solution, xcoor, plotting=True, imax=0.5):
         cc=(0.914716238473734, 0.1228224724422626, 0.3040725144466219, 0.5)
         
         if solution[-1].geom_type == 'MultiPolygon':
-            for i in solution[-1]:
+            for i in solution[-1].geoms: # for shpaely v<2 remove .geoms
                 
                 x, y = i.exterior.coords.xy
                 pseudosol=list(zip(x,y))
@@ -147,7 +142,10 @@ def analyzesolution(solution, xcoor, plotting=True, imax=0.5):
                             fig.tight_layout()  
                             plt.show()
                         
-                        print(f"===> Possible solution (centorid of polygon) :: {np.array(i.centroid)} or {0.5-np.array(i.centroid)}")
+                        # for shapely v<2 use this:
+                        #print(f"===> Possible solution (centorid of polygon) :: {np.array(i.centroid)} or {0.5-np.array(i.centroid)}")
+                        
+                        print(f"===> Possible solution (centorid of polygon) :: {np.array(i.centroid.xy).reshape(1,-1)[0]} or {0.5-np.array(i.centroid.xy).reshape(1,-1)[0]}")
                         print(f"===> Assumed coordinate: {xcoor}")
                         print(f"===> Possible uncertainty in solution :: {xe, ye}")
                         print(f"===> Finals area                      :: {i.area}\n")

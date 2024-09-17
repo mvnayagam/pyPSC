@@ -1,44 +1,10 @@
 import numpy as np
-import polytope as pc
-from psc.g_space import g, F, hsurf_g, hsurf_F, hsurf_F2
-from psc.x3Dchecklinearization import getpoly_mitd, checklinear
+from ..lib.g_space import hsurf_g, hsurf_F2
+from .x3Dchecklinearization import getpoly_mitd, checklinear
 
-
-from scipy.optimize import minimize, minimize_scalar, root, basinhopping
-
+# -------------------------------------------------------
 # ============== Modules for EPA ==============
-
-# def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
-    
-#     k = 2*np.pi*l  ; tot_coor = []
-    
-#     for i in range(len(f)):        
-#         tem_coor    = np.zeros(len(f))
-#         tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
-        
-#         tot_coor.append(tem_coor)        
-    
-#     if np.all(~np.isnan(np.array(tot_coor))):
-#         return np.array(tot_coor)
-#     else:
-        
-#         inx = np.argwhere(np.isnan(tot_coor).any(axis=1)).flatten()
-        
-#         for iw in inx:
-#             tem_coor    = np.zeros(len(f))
-#             tem_coor[iw] = xinit/l
-            
-#             mlist       = list([ii for ii in range(len(f)) if ii != iw])
-            
-#             temp_coor = (1/k)*np.arccos( (gi-f[iw]*np.cos(k*tem_coor[iw])) / 
-#                                          (np.sum([f[ii]*np.cos(k*tem_coor[ii]) for ii in mlist])))
-            
-#             tem_coor[iw+1:] = temp_coor
-#             tem_coor[:iw]   = temp_coor
-            
-#             tot_coor[iw]=tem_coor
-            
-#     return np.array(tot_coor)
+# -------------------------------------------------------
 
 def get_pnts_new(l, f, gi, imax=0.5):
     tot_coor=[]
@@ -54,7 +20,6 @@ def get_pnts_new(l, f, gi, imax=0.5):
         tot_coor.append(tem_coor)
     
     return tot_coor
-
 
 def linearizenD_EPA_old_deltelater (l:int, f: list, gi: int) ->list:
     
@@ -112,7 +77,9 @@ def linearizenD_EPA_old_deltelater (l:int, f: list, gi: int) ->list:
     return normal, d_all
 
 
+# -------------------------------------------------------
 # ============== Modules for EPA ==============
+# -------------------------------------------------------
 
 def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
     
@@ -291,7 +258,9 @@ def linearizenD_EPA(l:int, f: list, gi: int) ->list:
     return normal, d_all, pntx
 
 
+# -------------------------------------------------------
 # ============== Modules for non EPA ==============
+# -------------------------------------------------------
 
 def linearizenD_nEPA(l, f, gi):
     
@@ -413,13 +382,13 @@ def linearizenD_nEPA(l, f, gi):
                 t = [0] * len(f)
                 t[len(f)-1] = jj
                 
-                z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g3d(l, t, f, I, j=i, s=1)
+                z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i, s=1)
                 
                 if not np.isnan(z):
                     t[i] = z
                 else:
                     t[i] = 0.5/l
-                    z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g3d(l, t, f, I, j=i-1, s=1)
+                    z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i-1, s=1)
                     if not np.isnan(z):
                         t[i-1] = z
                     else:
@@ -451,7 +420,7 @@ def linearizenD_nEPA(l, f, gi):
                     t[i] = z
                 else:
                     t[i] = 0.5/l
-                    #z = hsurf_g3d(l, t, f, gi, j=i, s=1)
+                    #z = hsurf_g(l, t, f, gi, j=i, s=1)
                     z = hsurf_F2(gi*gi, l, t, f, j=i, s=1, s2=1)
                     
                     if not np.isnan(z):
@@ -478,7 +447,7 @@ def linearizenD_nEPA(l, f, gi):
         tot_coor=[]
         for i in range(len(f)):
             tem_coor    = np.zeros(len(f))
-            tem_coor[i] = hsurf_F2(I*I, l, tem_coor, f, j=i, s=1, s2=1, nan=False) #hsurf_g3d(l, tem_coor, f, gi, i, s=1)
+            tem_coor[i] = hsurf_F2(I*I, l, tem_coor, f, j=i, s=1, s2=1, nan=False) #hsurf_g(l, tem_coor, f, gi, i, s=1)
             tot_coor.append(tem_coor)
             
         return tot_coor
@@ -567,6 +536,40 @@ def linearizenD_nEPA(l, f, gi):
 
 
 
+# ----------------- Previous versions. may be delte later
+# def get_pnts_new4(l, f, gi, xinit=0, imax=0.5):
+    
+#     k = 2*np.pi*l  ; tot_coor = []
+    
+#     for i in range(len(f)):        
+#         tem_coor    = np.zeros(len(f))
+#         tem_coor[i] = hsurf_g(l, tem_coor, f, gi, i, s=1)
+        
+#         tot_coor.append(tem_coor)        
+    
+#     if np.all(~np.isnan(np.array(tot_coor))):
+#         return np.array(tot_coor)
+#     else:
+        
+#         inx = np.argwhere(np.isnan(tot_coor).any(axis=1)).flatten()
+        
+#         for iw in inx:
+#             tem_coor    = np.zeros(len(f))
+#             tem_coor[iw] = xinit/l
+            
+#             mlist       = list([ii for ii in range(len(f)) if ii != iw])
+            
+#             temp_coor = (1/k)*np.arccos( (gi-f[iw]*np.cos(k*tem_coor[iw])) / 
+#                                          (np.sum([f[ii]*np.cos(k*tem_coor[ii]) for ii in mlist])))
+            
+#             tem_coor[iw+1:] = temp_coor
+#             tem_coor[:iw]   = temp_coor
+            
+#             tot_coor[iw]=tem_coor
+            
+#     return np.array(tot_coor)
+
+
 # -------------- bak - not working properly
 # def linearizenD_nEPA(l, f, gi):
     
@@ -621,8 +624,8 @@ def linearizenD_nEPA(l, f, gi):
         
 #         #gii    = F(l, xexp, f)**2; 
 #         gzp = hsurf_F2(gi, l, [gx, gy, gz], f, j, s=1, s2=1)
-#         #gii    = np.abs(g3d(l, xexp, f));
-#         #gzp = hsurf_g3d(l, [gx, gy, gz], f, gii, j, s=s)
+#         #gii    = np.abs(g(l, xexp, f));
+#         #gzp = hsurf_g(l, [gx, gy, gz], f, gii, j, s=s)
         
 #         scom=np.array([[1]*len(f)])  ;  dlist=np.array([[0]*len(f)])
         
@@ -687,13 +690,13 @@ def linearizenD_nEPA(l, f, gi):
 #                 t = [0] * len(f)
 #                 t[len(f)-1] = jj
                 
-#                 z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g3d(l, t, f, I, j=i, s=1)
+#                 z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i, s=1)
                 
 #                 if not np.isnan(z):
 #                     t[i] = z
 #                 else:
 #                     t[i] = 0.5/l
-#                     z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g3d(l, t, f, I, j=i-1, s=1)
+#                     z = hsurf_F2(I*I, l, t, f, j=i, s=1, s2=1) # hsurf_g(l, t, f, I, j=i-1, s=1)
 #                     if not np.isnan(z):
 #                         t[i-1] = z
 #                     else:
@@ -725,7 +728,7 @@ def linearizenD_nEPA(l, f, gi):
 #                     t[i] = z
 #                 else:
 #                     t[i] = 0.5/l
-#                     #z = hsurf_g3d(l, t, f, gi, j=i, s=1)
+#                     #z = hsurf_g(l, t, f, gi, j=i, s=1)
 #                     z = hsurf_F2(gi*gi, l, t, f, j=i, s=1, s2=1)
                     
 #                     if not np.isnan(z):
@@ -751,7 +754,7 @@ def linearizenD_nEPA(l, f, gi):
 #         tot_coor=[]
 #         for i in range(len(f)):
 #             tem_coor    = np.zeros(len(f))
-#             tem_coor[i] = hsurf_F2(I*I, l, tem_coor, f, j=i, s=1, s2=1, nan=False) #hsurf_g3d(l, tem_coor, f, gi, i, s=1)
+#             tem_coor[i] = hsurf_F2(I*I, l, tem_coor, f, j=i, s=1, s2=1, nan=False) #hsurf_g(l, tem_coor, f, gi, i, s=1)
 #             tot_coor.append(tem_coor)
             
 #         return tot_coor

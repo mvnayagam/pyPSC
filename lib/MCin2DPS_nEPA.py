@@ -6,17 +6,17 @@ import os
 import numpy as np
 
 from datetime import datetime
-from pathlib import Path
 
-from itertools import permutations, combinations
+from itertools import permutations
 
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 from shapely.geometry import Point, Polygon
 
-from psc.g_space import F, g, hsurf_F2, hsurf_g
-from psc.x2Dlinearize import find_interception  
-from psc.x2Drepetition import mesh, getsigncom
+from .g_space import F, g
+from .x2Dlinearize import find_interception  
+
+from .x3Drepetition import getmesh, getsigncombination
 
 
 def fn_write(fn, data):
@@ -422,8 +422,8 @@ def isosurface_nEPA(h, xexp, f, j, fname, SSorDS='DS', IorG='amplitude', imin=0,
         
         t1=datetime.now()
         
-        signcom  = getsigncom(len(xexp))
-        meshlist = mesh(l, xexp, imax)
+        signcom  = getsigncombination(len(xexp))
+        meshlist = getmesh(l, xexp, imax)
         
         if IorG == 'amplitude':
             gi    = g(l, xexp, f)

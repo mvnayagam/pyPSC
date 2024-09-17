@@ -29,10 +29,11 @@ def find_intersection_updated(s, r):
         #print("from if: ", np.shape(s.A)[1])
         dim=np.shape(s.A)[1]
     elif type(s) is pc.Region:
-        print("from elif: ", np.shape(s[0].A)[1])
+        #print("from elif: ", np.shape(s[0].A)[1])
         dim=np.shape(s[0].A)[1]
     else:
-        print("type is not found")
+        pass
+        #print("type is not found")
     
     gp  = np.identity(dim)
     A  = np.array(np.vstack([-gp, gp]))
