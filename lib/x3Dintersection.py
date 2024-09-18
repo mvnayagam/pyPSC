@@ -7,7 +7,7 @@ It is written in serial method. Parallelization could save time. However it is y
 
 future goal : make it in parallel code
 '''
-def find_intersection(s, r):
+def find_intersection_v0(s, r):
     u=[]
 
     for count, i in enumerate(r):
@@ -22,7 +22,7 @@ def find_intersection(s, r):
                     u.append(k)
     return pc.Region(u)
 
-def find_intersection_updated(s, r):
+def find_intersection(s, r):
     u=[]
     
     if type(s) is pc.Polytope:

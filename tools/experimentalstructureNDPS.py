@@ -5,7 +5,7 @@ import polytope as pc
 from datetime import datetime
 
 from ..lib.g_space import g, F, hsurf_F2, hsurf_g
-from ..lib.x3Dlinearizazion import linearnD_EPA
+from ..lib.x3Dlinearization import linearnD_EPA
 from ..lib.x3Drepetition import getpolytope_EPA  #getpolytope
 from ..lib.x3Dintersection import find_intersection
 from ..lib.x3Dreadwrite import wrtcoor, wrtdata, wrtallsolution, wrttime_mc
@@ -225,7 +225,7 @@ def experimentalstrucutre_EPA(ROlist:list, scatteringfactors:list = [1., 1., 1.]
     
     return
 
-def nDMC_EPA(dimension: int, noofpair: int, noofRO: int=9, iorg: str='amplitude', imax=0.5) -> None:
+def MCinND_EPA(dimension: int, noofpair: int, noofRO: int=9, iorg: str='amplitude', imax=0.5) -> None:
     
     TS0=datetime.now()
     

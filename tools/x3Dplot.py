@@ -3,8 +3,6 @@ import intvalpy as ip
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from ..lib.g_space import F, g, hsurf_F, hsurf_g, hsurf_F2
-
 
 def plot_segment(ax, p, cc, lww=1.5, al=0.5):
     for i in p:
@@ -106,7 +104,9 @@ def plot_isosurf(l, h, gs, gx, gy, gzp, gzm, axs, cc, al=1, imax=0.5):
     return
 
 def plot_isosurfG(h, f, gi, noofpnts=500, imax=0.5, al=0.5, hstart=1):
-       
+    
+    from ..lib.g_space import hsurf_g
+    
     j = len(f)-1
     
     isos  = np.linspace(0, 0.5, noofpnts)

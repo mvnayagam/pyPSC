@@ -48,7 +48,7 @@ The algorithm has been tested with Monte-Carlo simulations, illustrating its eff
 ### Example 04 - Two-Atom Structure 
 ```python
 from psc.lib.g_space import g
-from psc.lib.x3Dlinearizazion import linearizenD_EPA
+from psc.lib.x3Dlinearization import linearizenD_EPA
 from psc.lib.x3Drepetition import getpolytope_EPA  
 from psc.lib.x3Dchecklinearization import checklinear
 from psc.lib.x3Dintersection import find_intersection

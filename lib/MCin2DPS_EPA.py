@@ -14,7 +14,7 @@ from shapely.ops import unary_union
 from shapely.geometry import Point, Polygon
 
 from .g_space import F, g
-from .x2Dlinearize import double_segment_EPA, single_segment_EPA
+from .x2Dlinearization import double_segment_EPA, single_segment_EPA
 from .x3Drepetition import getmesh
 
 def fn_write(fn, data):
@@ -242,8 +242,6 @@ def writepolygon_EPA(fname, pair, polys):
             xf = np.array([x[xl],y[xl]])
             fname.write("%2.12f\t\t%2.12f\t\t"%(xf[0],xf[1]))
     return ()
-
-
 
 
 def MC2DPS_EPA(noofpair: int=1, noofRO: int=4, SSorDS: str='double', IorG: str='amplitude', imax=0.5) -> None:

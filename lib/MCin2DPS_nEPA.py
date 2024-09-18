@@ -14,7 +14,7 @@ from shapely.ops import unary_union
 from shapely.geometry import Point, Polygon
 
 from .g_space import F, g
-from .x2Dlinearize import find_interception  
+from .x2Dlinearization import find_interception  
 
 from .x3Drepetition import getmesh, getsigncombination
 
