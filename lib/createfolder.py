@@ -11,11 +11,14 @@ def createmcdir():
         os.makedirs(fp)
     elif os_name == "Linux":
         print("You are using Linux.", end=' - ')
-        fp = os.path.join(os.path.expanduser("~"), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
+        # Get current working directory
+        fp = os.path.join(os.getcwd(), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
+        #fp = os.path.join(os.path.expanduser("~"), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
         os.makedirs(fp)
     elif os_name == "Darwin":
         print("You are using macOS.", end=' - ')
-        fp = os.path.join(os.path.expanduser("~"), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
+        fp = os.path.join(os.getcwd(), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
+        #fp = os.path.join(os.path.expanduser("~"), 'pypscresults', datetime.now().strftime('MCresult-'+'%Y-%m-%d-%H%M%S'))
         os.makedirs(fp)
     else:
         raise ValueError(f"I stop here - Unknown OS: {os_name}")

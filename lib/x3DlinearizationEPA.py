@@ -210,6 +210,14 @@ def linearizenD_EPA(l:int, f: list, gi: int) ->list:
             pnt = np.vstack([pnt, vv])
         
         d_all  = [d_int,d_out]
+        
+        checkstatus, checked_d = checklinear(l, f, gi, normal, d_all, j=len(f)-1)
+        
+        if checkstatus == True:
+            pass
+        else:
+            d_all = checked_d
+            checkstatus, checked_d = checklinear(l, f, gi, normal, d_all, j=len(f)-1)
         pntx   = pnt
     else:
         #print(f'\n-------------------- isotype {2}')
