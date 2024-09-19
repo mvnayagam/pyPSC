@@ -27,8 +27,7 @@ dependencies = [
     "shapely >= 2.0.6",
     "matplotlib >= 3.9.0",
     "pandas >= 2.0.0",
-    "intvalpy >= 1.6.0", 
-    "ipywidget >= 8"
+    "intvalpy >= 1.6.0"
 ]
 
 [tool.poetry.dev-dependencies]
