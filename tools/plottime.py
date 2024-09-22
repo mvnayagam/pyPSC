@@ -6,7 +6,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 
-from psc.x3Dreadwrite import readh5pymean
+from psc.lib import readh5file_v2
 
 
 def plottime_nD(fpath, h, interval=1):

@@ -3,23 +3,24 @@
 
 ## List of examples
 
-- Ex01:  Mote-Carlo simulation in three dimensional PS with EPA+Amplitude framework
+- ex01:  Mote-Carlo simulation in three dimensional PS with EPA+Amplitude framework
   
-- Ex02:  Mote-Carlo simulation in three dimensional PS with EPA+Intensity framework
+- ex02:  Mote-Carlo simulation in three dimensional PS with EPA+Intensity framework
   
-- Ex03:  Solving an example structure in jupiter notebook
+- ex03:  Solving an example structure in jupiter notebook
   
-- Ex04:  Structure determination in 2D_EPA  **_( contains both Single- and Double-segment methods )_**
+- ex04:  Structure determination in 2D_EPA  **_( contains both Single- and Double-segment methods )_**
   
-- Ex05:  Structure determination in 2D_nEPA  **_( contains both Single- and Double-segment methods )_**
+- ex05:  Structure determination in 2D_nEPA  **_( contains both Single- and Double-segment methods )_**
   
-- Ex06:
+- ex06:  Examples for otherdimensions
+			  An example structure is solved in 5, 6, 7.. dimensional PS. The time taken, total number of solutions, spatial uncertainits and the solved coordinates are plotted. 
   
-- Ex07:
+- ex07: 
   
-- Ex08:
+- ex08:
   
-- Ex09:
+- ex09:
 
 
 

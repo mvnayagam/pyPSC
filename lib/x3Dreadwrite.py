@@ -217,10 +217,11 @@ def readh5file(fn):
         
     return np.array(vall), mean[0], error, np.array(koor),  np.array(unsortkoor), extre, radius, noofsolution
 
+
 def readh5file_v2(fn):
-    
     with h5py.File(fn, 'r') as f:
-        mean = []
+        tinfo, maxerror, mean = [], [], []
+        
         ls = list(f.items())
         
         vol = f.get('solution_volume')
@@ -239,13 +240,54 @@ def readh5file_v2(fn):
         radkey=f.get('grandradius')
         radius=[np.array(radkey.get(i)) for i in np.array(radkey)]
         
-        noofsolu=f.get('allsolution')
-        noofsolution = [ (np.shape( np.array(f.get('allsolution/Pair'+str(ii))) )[0])/1 for ii in range(0, len(noofsolu)) ]
-        
+        #noofsolu=f.get('allsolution')
+        #noofsolution = np.shape(np.array([f.get('allsolution/Pair'+str(ii)) for ii in range(0, len(noofsolu)) ][0]))[0]
         noofsolu=f.get('solution_totalNr')
         noofsolution=[np.array(noofsolu.get(i)) for i in np.array(noofsolu)]
+
+        tinf = f.get('time_total')
+        tt   = [np.array(tinf.get(ii)) for ii in np.array(tinf)] ; tt = np.array(tt)[0]
+        #tti  = np.max(tt[2:]) #[np.max(np.array(tinf.get(ii)))for ii in np.array(tinf)]
+        tinfo.append(tt)
         
-    return np.array(volume), mean[0], error, mean, np.array(koordinate), centroid, radius, noofsolution
+        er    = f.get('solution_error')
+        err   = [np.array(er.get(i)) for i in np.array(er)]
+        emaxi = [np.max(i) for i in err]
+        maxerror.append(emaxi)
+        
+    return np.array(volume), mean[0], error, mean, np.array(koordinate), centroid, radius, noofsolution, tinfo, maxerror
+
+
+
+# def readh5file_v2(fn):
+    
+#     with h5py.File(fn, 'r') as f:
+#         mean = []
+#         ls = list(f.items())
+        
+#         vol = f.get('solution_volume')
+#         volume = [np.array(vol.get(i)) for i in np.array(vol)]
+#         mean.append(np.mean(np.array(volume)))
+        
+#         koorkey  = f.get('generatedcoordinate')
+#         koordinate = [np.array(koorkey.get(i)) for i in np.array(koorkey)]
+        
+#         err  = f.get('solution_error')
+#         error = [np.array(err.get(i)) for i in np.array(err)]
+                
+#         ext=f.get('solution_extremepoint')
+#         centroid=[np.mean(ext.get(i),0) for i in np.array(ext)]
+        
+#         radkey=f.get('grandradius')
+#         radius=[np.array(radkey.get(i)) for i in np.array(radkey)]
+        
+#         noofsolu=f.get('allsolution')
+#         noofsolution = [ (np.shape( np.array(f.get('allsolution/Pair'+str(ii))) )[0])/1 for ii in range(0, len(noofsolu)) ]
+        
+#         noofsolu=f.get('solution_totalNr')
+#         noofsolution=[np.array(noofsolu.get(i)) for i in np.array(noofsolu)]
+        
+#     return np.array(volume), mean[0], error, mean, np.array(koordinate), centroid, radius, noofsolution
 
 def readoldsolution(pairID, fname):
     

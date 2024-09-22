@@ -1,0 +1,8 @@
+@software{pypsc2024,
+  author = {Vallinayagam, Muthu and Nentwich, Melanie and Zschornak, Matthias},
+  month = {12},
+  title = {{ pypsc - Linearization Routines for the Parameter Space Concep to determine crystal structures}},
+  url = {https://github.com/mvnayagam/pypsc.git},
+  version = {0.2.1},
+  year = {2024}
+}
